@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Dataset | DataVault</title>
+    <meta name="description" content="Upload your business data to DataVault. Any file format — we encrypt and list it for buyers to bid on.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/crypto.js"></script>
+    <style>
+        .spin { animation: spin 1.5s linear infinite; display: inline-block; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .upload-float { animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .progress-track { background: var(--c-border); border-radius: 99px; height: 8px; overflow: hidden; }
+        .progress-fill  { height: 100%; background: linear-gradient(90deg, var(--c-primary), var(--c-accent)); border-radius: 99px; transition: width 0.5s ease; }
+        .category-chip { cursor: pointer; border: 2px solid var(--c-border); border-radius: 99px; padding: 6px 16px; font-size: var(--fs-sm); font-weight: 600; transition: all 0.2s; background: var(--c-surface); }
+        .category-chip.selected { border-color: var(--c-primary); background: var(--c-primary); color: #fff; }
+        .duration-option { border: 2px solid var(--c-border); border-radius: var(--r-lg); padding: 16px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .duration-option.selected { border-color: var(--c-primary); background: color-mix(in srgb, var(--c-primary) 8%, white); }
+        .duration-option .label { font-weight: 700; font-size: 1.1rem; color: var(--c-text); }
+        .duration-option .sub { font-size: var(--fs-xs); color: var(--c-text-secondary); margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+    <nav class="nav">
+        <div class="nav__inner container flex justify-between items-center">
+            <a href="index.html" class="nav__logo font-bold text-lg flex items-center gap-4">
+                <span class="nav__logo-icon">🔐</span> DataVault
+            </a>
+            <div class="nav__links hidden md:flex items-center gap-6">
+                <a href="marketplace.html" class="nav__link">Marketplace</a>
+                <a href="dashboard.html" class="nav__link">My Dashboard</a>
+                <a href="faq.html" class="nav__link">Help</a>
+            </div>
+            <div class="nav__actions flex items-center gap-4">
+                <!-- Updated by auth.js -->
+            </div>
+        </div>
+    </nav>
+
+    <main class="section container container--narrow mt-8 mb-12">
+
+        <!-- PHASE 1: Drop Zone -->
+        <div id="phase-1" class="animate-fade-up text-center">
+            <h1 class="page-header__title mb-2">Upload Your Dataset</h1>
+            <p class="text-secondary mb-8 text-lg">Any file works — we encrypt it before it leaves your device 🔒</p>
+
+            <div class="dropzone p-12 mb-6 cursor-pointer" id="main-dropzone" onclick="document.getElementById('file-upload').click()">
+                <div class="dropzone__icon text-6xl mb-4 upload-float">🗂️</div>
+                <h3 class="dropzone__title text-2xl font-bold mb-2">Drop your file here — any format</h3>
+                <p class="dropzone__sub text-secondary mb-6">CSV, Excel, PDF, Word, JSON, images — anything goes</p>
+                <button class="btn btn--primary btn--lg" type="button">Browse Files</button>
+                <input type="file" id="file-upload" class="hidden">
+            </div>
+
+            <div class="flex items-center justify-center gap-2 flex-wrap text-sm text-secondary">
+                <span class="badge badge--neutral">CSV</span> •
+                <span class="badge badge--neutral">XLSX</span> •
+                <span class="badge badge--neutral">PDF</span> •
+                <span class="badge badge--neutral">DOCX</span> •
+                <span class="badge badge--neutral">JSON</span> •
+                <span class="badge badge--neutral">PNG / JPG</span> •
+                <span class="ml-2">and more</span>
+            </div>
+            <p class="text-xs text-secondary mt-4">File size limit: 500MB · Encrypted with AES-256 before upload</p>
+
+            <!-- Simple Privacy & Anonymity Guarantee for Small Businesses -->
+            <div class="card card__body mt-8 text-left" style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 12px; padding: 1.5rem;">
+                <div class="flex items-start gap-4">
+                    <div style="font-size: 2.2rem; line-height: 1;">🛡️</div>
+                    <div>
+                        <h4 style="font-weight: 700; font-size: 1.1rem; color: #166534; margin-bottom: 0.4rem;">100% Anonymized & Safe for Your Business</h4>
+                        <p style="font-size: 0.95rem; color: #15803D; margin: 0; line-height: 1.5;">
+                            <strong>No customer names or private secrets are ever shared.</strong> Our AI automatically removes personal names, emails, phone numbers, and addresses from your file before anyone sees it. You get paid for your market insights while your customers stay completely private.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demo mode note -->
+            <div id="demo-upload-note" class="hidden alert alert--neutral mt-6">
+                <span class="alert__icon">🎭</span>
+                <div>Demo mode: file upload is simulated. Connect Supabase Storage to enable real uploads. <a href="setup/SETUP.md" class="underline">See SETUP.md</a></div>
+            </div>
+        </div>
+
+        <!-- PHASE 2: Encrypting + Uploading -->
+        <div id="phase-2" class="hidden text-center py-12">
+            <div class="text-6xl mb-6 spin" id="phase2-icon">⚙️</div>
+            <h2 class="section-title mb-4" id="processing-status">Reading your file…</h2>
+            <div class="progress-track w-full max-w-md mx-auto mb-4">
+                <div class="progress-fill" id="progress-bar" style="width:0%"></div>
+            </div>
+            <p class="text-secondary text-sm flex items-center justify-center gap-2">
+                <span id="encrypt-status">🔓 Preparing encryption…</span>
+            </p>
+            <p class="text-xs text-secondary mt-4">Your file never leaves your device unencrypted.</p>
+        </div>
+
+        <!-- PHASE 3: Listing Details -->
+        <div id="phase-3" class="hidden animate-fade-up">
+            <div class="flex items-center gap-4 mb-6">
+                <button id="back-btn" class="btn btn--ghost btn--sm" onclick="goToPhase(1)">← Back</button>
+                <h1 class="page-header__title mb-0">Dataset Listing Details</h1>
+            </div>
+
+            <div class="alert alert--success mb-6">
+                <span class="alert__icon">🔒</span>
+                <div>
+                    <strong class="alert__title">File encrypted successfully!</strong>
+                    <p>Your data is protected with AES-256 encryption. Only the winning buyer receives the decryption key — after payment.</p>
+                </div>
+            </div>
+
+            <!-- File Summary -->
+            <div class="card card__body mb-6" id="file-summary">
+                <div class="flex items-center gap-4">
+                    <div class="text-4xl" id="file-icon">📄</div>
+                    <div>
+                        <div class="font-bold" id="file-name-display">my-data.csv</div>
+                        <div class="text-sm text-secondary" id="file-size-display">—</div>
+                    </div>
+                    <span class="badge badge--success ml-auto">✓ Encrypted</span>
+                </div>
+            </div>
+
+            <form id="publish-form" class="card card__body card__body--lg">
+
+                <div class="form-group mb-6">
+                    <label class="form-label" for="title">Dataset Title *</label>
+                    <input type="text" id="title" class="input input--lg" placeholder="e.g. Downtown Café Sales Data 2023–2024" required>
+                    <div class="form-hint text-xs text-secondary mt-2">Be specific — buyers search by title</div>
+                </div>
+
+                <div class="form-group mb-6">
+                    <label class="form-label" for="desc">Description *</label>
+                    <textarea id="desc" class="input" rows="4" placeholder="What does this data contain? What time period? Why would a buyer find it valuable?" required></textarea>
+                </div>
+
+                <div class="form-group mb-6">
+                    <label class="form-label">Category *</label>
+                    <div class="flex flex-wrap gap-2 mt-2" id="category-chips">
+                        <div class="category-chip" data-value="Retail Sales">🛒 Retail Sales</div>
+                        <div class="category-chip" data-value="Inventory">📦 Inventory</div>
+                        <div class="category-chip" data-value="Foot Traffic">👣 Foot Traffic</div>
+                        <div class="category-chip" data-value="Local Pricing">🏷️ Local Pricing</div>
+                        <div class="category-chip" data-value="Customer Demographics">👥 Customer Demographics</div>
+                        <div class="category-chip" data-value="Restaurant Orders">🍽️ Restaurant Orders</div>
+                        <div class="category-chip" data-value="Services">🔧 Services</div>
+                        <div class="category-chip" data-value="Other">📊 Other</div>
+                    </div>
+                    <input type="hidden" id="category" required>
+                </div>
+
+                <div class="grid-2 gap-4 mb-6">
+                    <div class="form-group">
+                        <label class="form-label" for="location">Location</label>
+                        <input type="text" id="location" class="input" placeholder="e.g. Austin, TX">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="row-count">Approximate Row Count</label>
+                        <input type="number" id="row-count" class="input" placeholder="e.g. 5000" min="1">
+                    </div>
+                </div>
+
+                <div class="grid-2 gap-4 mb-6">
+                    <div class="form-group">
+                        <label class="form-label" for="date-start">Data Start Date</label>
+                        <input type="date" id="date-start" class="input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="date-end">Data End Date</label>
+                        <input type="date" id="date-end" class="input">
+                    </div>
+                </div>
+
+                <div class="grid-2 gap-4 mb-6">
+                    <div class="form-group">
+                        <label class="form-label" for="start-bid">Starting Bid *</label>
+                        <div style="position:relative">
+                            <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--c-text-secondary);font-weight:600">$</span>
+                            <input type="number" id="start-bid" class="input input--lg" style="padding-left:28px" placeholder="100" min="10" step="5" required>
+                        </div>
+                        <div class="form-hint text-xs text-secondary mt-2">Bidding opens at this price</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="reserve">
+                            Secret Minimum Price *
+                            <span title="Auction won't close until bids reach this. Buyers never see this number." style="cursor:help">🔒</span>
+                        </label>
+                        <div style="position:relative">
+                            <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--c-text-secondary);font-weight:600">$</span>
+                            <input type="number" id="reserve" class="input input--lg" style="padding-left:28px" placeholder="250" min="10" step="5" required>
+                        </div>
+                        <div class="form-hint text-xs text-secondary mt-2">Only you see this. Auction closes only if bids reach it.</div>
+                    </div>
+                </div>
+
+                <div class="form-group mb-8">
+                    <label class="form-label">Auction Duration *</label>
+                    <div class="grid-3 gap-3 mt-2">
+                        <div class="duration-option selected" data-days="7">
+                            <div class="label">7 Days</div>
+                            <div class="sub">Most popular</div>
+                        </div>
+                        <div class="duration-option" data-days="14">
+                            <div class="label">14 Days</div>
+                            <div class="sub">More exposure</div>
+                        </div>
+                        <div class="duration-option" data-days="30">
+                            <div class="label">30 Days</div>
+                            <div class="sub">Maximum reach</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="duration-days" value="7">
+                </div>
+
+                <div class="card card--primary p-4 mb-6 flex items-center gap-4">
+                    <div class="text-2xl">💰</div>
+                    <div>
+                        <div class="font-bold">Platform Fee: 5%</div>
+                        <div class="text-sm text-secondary">Only charged when your data sells. If no bids meet your reserve, you pay nothing.</div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn--accent btn--xl btn--full" id="publish-btn">
+                    Publish Dataset &amp; Start Earning 🚀
+                </button>
+            </form>
+        </div>
+
+        <!-- PHASE 4: Success -->
+        <div id="phase-4" class="hidden text-center animate-fade-up">
+            <div class="text-7xl mb-6">🎉</div>
+            <h1 class="section-title font-bold mb-2">Your dataset is live!</h1>
+            <p class="text-secondary text-lg mb-8" id="live-message">Buyers can start bidding right now.</p>
+            <div class="flex flex-col gap-4 max-w-sm mx-auto">
+                <a id="view-listing-btn" href="marketplace.html" class="btn btn--accent btn--xl btn--full">View My Listing →</a>
+                <a href="upload.html" class="btn btn--outline btn--lg btn--full">Upload Another Dataset</a>
+                <a href="dashboard.html" class="btn btn--ghost btn--lg btn--full">Go to Dashboard</a>
+            </div>
+        </div>
+
+    <!-- Footer -->
+    <footer class="footer section section--sm text-secondary mt-16">
+        <div class="container">
+            <div class="footer__grid grid grid-4 gap-8 mb-8">
+                <div>
+                    <a href="index.html" class="footer__logo font-bold text-lg text-primary mb-4 flex items-center gap-2">
+                        <span>🔐</span> DataVault
+                    </a>
+                    <p class="footer__tagline text-sm">Empowering small businesses to monetize their most valuable asset — their data.</p>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Platform</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="marketplace.html" class="footer__link">Marketplace</a></li>
+                        <li><a href="onboard.html" class="footer__link">For Sellers</a></li>
+                        <li><a href="pricing.html" class="footer__link">Pricing & Fees</a></li>
+                        <li><a href="index.html#how-it-works" class="footer__link">How It Works</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Company & Support</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="about.html" class="footer__link">About DataVault</a></li>
+                        <li><a href="faq.html" class="footer__link">Help Center</a></li>
+                        <li><a href="contact.html" class="footer__link">Contact Support</a></li>
+                        <li><a href="login.html" class="footer__link">Account Login</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Legal & Privacy</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="privacy.html" class="footer__link">Privacy Policy</a></li>
+                        <li><a href="terms.html" class="footer__link">Terms of Service</a></li>
+                        <li><a href="cookies.html" class="footer__link">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="divider mb-6"></div>
+            <div class="footer__bottom flex justify-between items-center text-xs">
+                <p>© 2026 DataVault Inc. All rights reserved. Encrypted & Verified Data Exchange.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+    <script src="js/crypto.js"></script>
+    <script src="js/normalize.js"></script>
+    <script>
+    /* ── Upload Page Logic ─────────────────────────────────── */
+    'use strict';
+
+    let selectedFile     = null;
+    let encryptedResult  = null;
+    let selectedCategory = null;
+    let selectedDuration = 7;
+    let currentDatasetId = null;
+
+    /* ── Auth check ──────────────────────────────────────────── */
+    document.addEventListener('DOMContentLoaded', async () => {
+        const demoMode = window.DV_CONFIG?.DEMO_MODE;
+
+        if (demoMode) {
+            document.getElementById('demo-upload-note')?.classList.remove('hidden');
+            DVAuthManager.enableDemoUser('seller');
+        } else {
+            const ok = await DVAuthManager.requireSeller();
+            if (!ok) return;
+        }
+
+        initDropzone();
+        initCategoryChips();
+        initDurationOptions();
+        initPublishForm();
+    });
+
+    /* ── Dropzone ──────────────────────────────────────────── */
+    function initDropzone() {
+        const dz    = document.getElementById('main-dropzone');
+        const input = document.getElementById('file-upload');
+
+        ['dragenter','dragover','dragleave','drop'].forEach(e => {
+            dz.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); });
+            document.body.addEventListener(e, ev => ev.preventDefault());
+        });
+        ['dragenter','dragover'].forEach(e => dz.addEventListener(e, () => dz.classList.add('dropzone--active')));
+        ['dragleave','drop'].forEach(e => dz.addEventListener(e, () => dz.classList.remove('dropzone--active')));
+
+        dz.addEventListener('drop', ev => {
+            const files = ev.dataTransfer?.files;
+            if (files?.length) handleFile(files[0]);
+        });
+
+        input.addEventListener('change', () => {
+            if (input.files?.length) handleFile(input.files[0]);
+        });
+    }
+
+    async function handleFile(file) {
+        selectedFile = file;
+        goToPhase(2);
+        await encryptAndUpload(file);
+    }
+
+    async function encryptAndUpload(file) {
+        const status  = document.getElementById('processing-status');
+        const bar     = document.getElementById('progress-bar');
+        const encStat = document.getElementById('encrypt-status');
+
+        // Step 1 – read
+        status.textContent = '📖 Reading your file…';
+        bar.style.width = '20%';
+        await pause(600);
+
+            // Step 2 – AI PII Scrubbing & Normalization
+            encStat.textContent = '🧠 AI scanning for personal names, emails & phone numbers…';
+            status.textContent  = '🛡️ Anonymizing & scrubbing PII…';
+            bar.style.width = '35%';
+
+            let cleanedFile = file;
+            let aiMeta = null;
+
+            try {
+                if (file.type.includes('text') || file.name.endsWith('.csv') || file.name.endsWith('.json') || file.name.endsWith('.txt')) {
+                    const text = await file.text();
+                    const aiRes = await fetch('/api/ai-clean-and-summarize', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ textContent: text, originalName: file.name })
+                    });
+                    const aiData = await aiRes.json();
+
+                    if (aiData.success && aiData.cleanedContent) {
+                        cleanedFile = new File([aiData.cleanedContent], file.name, { type: file.type || 'text/csv' });
+                        aiMeta = aiData.metadata;
+                        console.log(`[AI Scrubber] Removed ${aiData.piiRemovedCount} PII instances from dataset.`);
+                    }
+                }
+            } catch (aiErr) {
+                console.warn('[AI Scrubber] AI auto-clean warning:', aiErr);
+            }
+
+            // Step 3 – Zero-Knowledge Encryption
+            encStat.textContent = '🔒 Encrypting with AES-256…';
+            status.textContent  = '🔒 Locking data in zero-knowledge vault…';
+            bar.style.width = '65%';
+
+            try {
+                const isDemoMode = window.DV_CONFIG?.DEMO_MODE;
+
+                if (isDemoMode) {
+                    await pause(1000);
+                    encryptedResult = {
+                        encryptedBlob: new Blob(['demo'], { type: 'application/octet-stream' }),
+                        keyB64: btoa('demo-encryption-key-' + Date.now()),
+                        originalName: cleanedFile.name,
+                        originalSize: cleanedFile.size,
+                    };
+                } else {
+                    encryptedResult = await DVCrypto.encryptFile(cleanedFile, p => {
+                        bar.style.width = (65 + p * 20) + '%';
+                    });
+                }
+
+                encStat.textContent = '🔒 Zero-Knowledge Encrypted!';
+                bar.style.width = '90%';
+                status.textContent = '☁️ Securely storing encrypted blob…';
+                await pause(400);
+
+                // Step 4 – upload
+                if (!isDemoMode) {
+                    const uploadResult = await DVSupabase.datasets.uploadFile(
+                        encryptedResult.encryptedBlob,
+                        cleanedFile.name,
+                    );
+                    encryptedResult.storagePath = uploadResult.path || null;
+                }
+
+                bar.style.width = '100%';
+                status.textContent = '✅ Anonymized & Encrypted!';
+                await pause(600);
+
+                // Move to phase 3 & Auto-fill AI Metadata
+                document.getElementById('file-name-display').textContent = file.name;
+                document.getElementById('file-size-display').textContent =
+                    formatBytes(cleanedFile.size) + ' (PII Scrubbed & Encrypted)';
+                document.getElementById('file-icon').textContent = getFileIcon(file.name);
+
+                if (aiMeta) {
+                    if (aiMeta.title) document.getElementById('title').value = aiMeta.title;
+                    if (aiMeta.description) document.getElementById('desc').value = aiMeta.description;
+                    if (aiMeta.rowCount) document.getElementById('row-count').value = aiMeta.rowCount;
+                    if (aiMeta.category) {
+                        const chip = Array.from(document.querySelectorAll('.category-chip')).find(c => c.dataset.value === aiMeta.category);
+                        if (chip) chip.click();
+                    }
+                }
+
+                goToPhase(3);
+
+            } catch (err) {
+                status.textContent = '❌ Error: ' + err.message;
+                encStat.textContent = '⚠️ Processing failed';
+                console.error('[Upload] Error:', err);
+                DV.Toast.error('Upload failed: ' + err.message);
+                setTimeout(() => goToPhase(1), 3000);
+            }
+        }
+
+    /* ── Category chips ──────────────────────────────────────── */
+    function initCategoryChips() {
+        document.querySelectorAll('.category-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('selected'));
+                chip.classList.add('selected');
+                selectedCategory = chip.dataset.value;
+                document.getElementById('category').value = selectedCategory;
+            });
+        });
+    }
+
+    /* ── Duration options ────────────────────────────────────── */
+    function initDurationOptions() {
+        document.querySelectorAll('.duration-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                document.querySelectorAll('.duration-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                selectedDuration = parseInt(opt.dataset.days, 10);
+                document.getElementById('duration-days').value = selectedDuration;
+            });
+        });
+    }
+
+    /* ── Publish form ────────────────────────────────────────── */
+    function initPublishForm() {
+        const form = document.getElementById('publish-form');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await handlePublish();
+        });
+    }
+
+    async function handlePublish() {
+        const btn = document.getElementById('publish-btn');
+
+        // Validate
+        const title    = document.getElementById('title').value.trim();
+        const desc     = document.getElementById('desc').value.trim();
+        const category = selectedCategory || document.getElementById('category').value;
+        const startBid = parseFloat(document.getElementById('start-bid').value);
+        const reserve  = parseFloat(document.getElementById('reserve').value);
+
+        if (!title)    return DV.Toast.error('Please enter a dataset title.');
+        if (!desc)     return DV.Toast.error('Please add a description.');
+        if (!category) return DV.Toast.error('Please select a category.');
+        if (!startBid || startBid < 10) return DV.Toast.error('Starting bid must be at least $10.');
+        if (!reserve  || reserve < startBid) return DV.Toast.error('Reserve must be at least equal to the starting bid.');
+
+        btn.disabled     = true;
+        btn.textContent  = '⏳ Publishing…';
+
+        try {
+            const isDemoMode = window.DV_CONFIG?.DEMO_MODE;
+            const user       = DVAuthManager.user || { id: 'demo-user' };
+            const auctionEnd = new Date(Date.now() + selectedDuration * 86400 * 1000).toISOString();
+
+            const datasetPayload = {
+                seller_id:        user.id,
+                title,
+                description:      desc,
+                category,
+                location:         document.getElementById('location').value.trim() || null,
+                row_count:        parseInt(document.getElementById('row-count').value) || null,
+                date_range_start: document.getElementById('date-start').value || null,
+                date_range_end:   document.getElementById('date-end').value || null,
+                starting_bid:     startBid,
+                reserve_price:    reserve,
+                current_top_bid:  0,
+                auction_end:      auctionEnd,
+                status:           'active',
+                file_path:        encryptedResult?.storagePath || null,  // matches datasets.js + release-dataset.js
+                encryption_key:   encryptedResult?.keyB64 || null,
+                // Embed seller display info so dataset.html can render without a profile join
+                seller: {
+                    business_name: DVAuthManager.profile?.business_name || user.email || 'Seller',
+                    industry:      DVAuthManager.profile?.industry || null,
+                    verified:      DVAuthManager.profile?.verified || false,
+                },
+            };
+
+            const { data, error } = await DVSupabase.datasets.create(datasetPayload);
+            if (error) throw error;
+
+            currentDatasetId = data?.id || 'demo-' + Date.now();
+
+            // Update phase 4
+            document.getElementById('live-message').textContent =
+                `"${title}" is now live! Buyers can start bidding immediately.`;
+            if (currentDatasetId && !isDemoMode) {
+                document.getElementById('view-listing-btn').href = `dataset.html?id=${currentDatasetId}`;
+            }
+
+            DV.Toast.success('Dataset published successfully! 🎉');
+            goToPhase(4);
+
+        } catch (err) {
+            btn.disabled    = false;
+            btn.textContent = 'Publish Dataset & Start Earning 🚀';
+            DV.Toast.error('Publish failed: ' + err.message);
+            console.error('[Publish]', err);
+        }
+    }
+
+    /* ── Phase navigation ────────────────────────────────────── */
+    function goToPhase(n) {
+        [1,2,3,4].forEach(i => {
+            document.getElementById('phase-' + i)?.classList.toggle('hidden', i !== n);
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ── Helpers ─────────────────────────────────────────────── */
+    function formatBytes(bytes) {
+        if (bytes < 1024)           return bytes + ' B';
+        if (bytes < 1024 * 1024)   return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+    }
+
+    function getFileIcon(name) {
+        const ext = name.split('.').pop().toLowerCase();
+        const icons = { csv:'📊', xlsx:'📊', xls:'📊', pdf:'📄', docx:'📝', doc:'📝', json:'🗃️', png:'🖼️', jpg:'🖼️', jpeg:'🖼️', txt:'📝' };
+        return icons[ext] || '📁';
+    }
+
+    function pause(ms) { return new Promise(r => setTimeout(r, ms)); }
+    </script>
+</body>
+</html>

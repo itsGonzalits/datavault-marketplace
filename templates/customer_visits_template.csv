@@ -1,0 +1,28 @@
+Date,Day of Week,Hour,Visitor Count,New vs Returning,Avg Time in Store (min),Transactions,Conversion Rate (%),Weather,Foot Traffic Source,Notes
+2024-10-01,Tuesday,09:00,12,8 new / 4 returning,18,4,33.3,Sunny,Walk-in,
+2024-10-01,Tuesday,10:00,28,19 new / 9 returning,22,9,32.1,Sunny,Walk-in,
+2024-10-01,Tuesday,11:00,41,27 new / 14 returning,25,15,36.6,Sunny,Mixed,Lunch rush starting
+2024-10-01,Tuesday,12:00,67,44 new / 23 returning,19,24,35.8,Sunny,Mixed,Peak lunch
+2024-10-01,Tuesday,13:00,58,38 new / 20 returning,20,21,36.2,Cloudy,Mixed,
+2024-10-01,Tuesday,14:00,34,21 new / 13 returning,27,11,32.4,Cloudy,Walk-in,
+2024-10-01,Tuesday,15:00,29,18 new / 11 returning,24,9,31.0,Cloudy,Walk-in,
+2024-10-01,Tuesday,16:00,38,24 new / 14 returning,22,14,36.8,Sunny,Mixed,After-school traffic
+2024-10-01,Tuesday,17:00,52,34 new / 18 returning,21,18,34.6,Sunny,Mixed,Evening rush
+2024-10-01,Tuesday,18:00,44,29 new / 15 returning,23,16,36.4,Sunny,Walk-in,
+2024-10-01,Tuesday,19:00,21,13 new / 8 returning,18,7,33.3,Clear,Walk-in,
+2024-10-02,Wednesday,09:00,9,7 new / 2 returning,16,3,33.3,Rainy,Walk-in,Slow due to rain
+2024-10-02,Wednesday,10:00,18,12 new / 6 returning,19,5,27.8,Rainy,Walk-in,
+2024-10-02,Wednesday,11:00,32,20 new / 12 returning,22,10,31.3,Rainy,Mixed,
+2024-10-02,Wednesday,12:00,55,36 new / 19 returning,20,19,34.5,Clearing,Mixed,
+2024-10-02,Wednesday,13:00,48,31 new / 17 returning,21,17,35.4,Sunny,Mixed,
+2024-10-02,Wednesday,14:00,27,17 new / 10 returning,25,9,33.3,Sunny,Walk-in,
+2024-10-02,Wednesday,15:00,33,21 new / 12 returning,23,11,33.3,Sunny,Walk-in,
+2024-10-05,Saturday,09:00,38,25 new / 13 returning,28,14,36.8,Sunny,Mixed,Weekend open
+2024-10-05,Saturday,10:00,72,48 new / 24 returning,32,28,38.9,Sunny,Mixed,
+2024-10-05,Saturday,11:00,118,78 new / 40 returning,35,47,39.8,Sunny,Event nearby,Local market nearby
+2024-10-05,Saturday,12:00,142,94 new / 48 returning,30,58,40.8,Sunny,Event nearby,Peak day
+2024-10-05,Saturday,13:00,131,87 new / 44 returning,28,52,39.7,Sunny,Mixed,
+2024-10-05,Saturday,14:00,98,65 new / 33 returning,26,38,38.8,Sunny,Mixed,
+2024-10-05,Saturday,15:00,84,55 new / 29 returning,25,32,38.1,Sunny,Walk-in,
+2024-10-05,Saturday,16:00,71,47 new / 24 returning,24,27,38.0,Cloudy,Walk-in,
+2024-10-05,Saturday,17:00,49,32 new / 17 returning,22,18,36.7,Cloudy,Walk-in,Winding down

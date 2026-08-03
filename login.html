@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log In | DataVault</title>
+    <meta name="description" content="Sign in or create your DataVault account to sell or buy business data.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <!-- Netlify Identity Widget — handles all auth automatically -->
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <style>
+        body { background: linear-gradient(135deg, #f0fdf4 0%, #fffbf5 50%, #fff7ed 100%); min-height: 100vh; }
+        .login-card { background: #fff; border-radius: 24px; padding: 48px 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.10); max-width: 440px; width: 100%; margin: 0 auto; position: relative; overflow: hidden; }
+        .login-card::before { content: ''; position: absolute; top: -60px; right: -60px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(13,148,136,0.12) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+        .login-card::after { content: ''; position: absolute; bottom: -40px; left: -40px; width: 150px; height: 150px; background: radial-gradient(circle, rgba(249,115,22,0.10) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
+        .login-icon { font-size: 3.5rem; margin-bottom: 20px; display: block; }
+        .divider-text { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: var(--c-text-secondary); font-size: 0.85rem; }
+        .divider-text::before, .divider-text::after { content: ''; flex: 1; height: 1px; background: var(--c-border); }
+        .oauth-btn { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 14px 20px; border: 1.5px solid var(--c-border); border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: #fff; font-family: var(--font); font-size: 1rem; width: 100%; color: var(--c-text); text-decoration: none; }
+        .oauth-btn:hover { border-color: var(--c-primary); background: color-mix(in srgb, var(--c-primary) 4%, white); transform: translateY(-1px); }
+        .magic-form input { width: 100%; padding: 14px 16px; border: 1.5px solid var(--c-border); border-radius: 12px; font-family: var(--font); font-size: 1rem; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
+        .magic-form input:focus { border-color: var(--c-primary); }
+        .success-state { text-align: center; padding: 20px; background: #f0fdf4; border-radius: 16px; border: 1.5px solid #bbf7d0; }
+        .feature-list { list-style: none; padding: 0; margin: 0; }
+        .feature-list li { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 0.9rem; color: var(--c-text-secondary); }
+        .demo-btn { background: #1C1917; color: #fff; border: none; border-radius: 12px; padding: 14px 20px; font-family: var(--font); font-size: 1rem; font-weight: 600; cursor: pointer; width: 100%; transition: opacity 0.2s; }
+        .demo-btn:hover { opacity: 0.85; }
+    </style>
+</head>
+<body>
+
+<nav class="nav">
+    <div class="nav__inner container flex justify-between items-center">
+        <a href="index.html" class="nav__logo font-bold text-lg flex items-center gap-4">
+            <span class="nav__logo-icon">🔐</span> DataVault
+        </a>
+        <div class="nav__links hidden md:flex items-center gap-6">
+            <a href="marketplace.html" class="nav__link">Marketplace</a>
+            <a href="faq.html" class="nav__link">Help</a>
+        </div>
+        <div class="nav__actions flex items-center gap-4"></div>
+    </div>
+</nav>
+
+<main style="min-height:calc(100vh - 70px);display:flex;align-items:center;justify-content:center;padding:40px 20px;">
+    <div style="display:flex;gap:48px;align-items:center;max-width:880px;width:100%;flex-wrap:wrap;justify-content:center;">
+
+        <!-- Left: Value props -->
+        <div style="max-width:340px;flex:1;min-width:240px;">
+            <h1 style="font-size:2rem;font-weight:800;line-height:1.2;margin-bottom:16px;">Your data.<br>Your <span style="color:var(--c-primary)">earnings</span>.</h1>
+            <p class="text-secondary mb-6">Join thousands of small businesses turning their operational data into income.</p>
+            <ul class="feature-list">
+                <li><span style="color:var(--c-primary);font-size:1.2rem;">✓</span> Free to list — 5% only on sale</li>
+                <li><span style="color:var(--c-primary);font-size:1.2rem;">✓</span> AES-256 encrypted before upload</li>
+                <li><span style="color:var(--c-primary);font-size:1.2rem;">✓</span> Buyer pays via Stripe — secure</li>
+                <li><span style="color:var(--c-primary);font-size:1.2rem;">✓</span> Payout within 5 business days</li>
+            </ul>
+        </div>
+
+        <!-- Right: Login card -->
+        <div class="login-card animate-fade-up">
+            <span class="login-icon">🔐</span>
+            <h2 class="font-bold text-2xl mb-2 text-primary" id="card-title">Welcome back</h2>
+            <p class="text-secondary text-sm mb-6" id="card-sub">Sign in to manage your datasets or place bids.</p>
+
+            <!-- Success state (shown after magic link sent) -->
+            <div id="success-state" class="success-state hidden mb-6">
+                <div style="font-size:2rem;margin-bottom:8px">📬</div>
+                <strong>Check your inbox!</strong>
+                <p class="text-sm text-secondary mt-2">We sent a magic link to <strong id="sent-to-email"></strong>. Click it to sign in — no password needed.</p>
+            </div>
+
+            <!-- Main form area -->
+            <div id="form-area">
+                <!-- OAuth -->
+                <button class="oauth-btn mb-3" id="google-btn" onclick="signInWithGoogle()">
+                    <svg width="20" height="20" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                    Continue with Google
+                </button>
+
+                <div class="divider-text">or sign in with email</div>
+
+                <!-- Magic link form -->
+                <form class="magic-form" id="magic-form" onsubmit="sendMagicLink(event)">
+                    <input type="email" id="email-input" placeholder="you@yourbusiness.com" required autocomplete="email" style="margin-bottom:12px;">
+                    <button type="submit" class="btn btn--accent btn--full btn--lg" id="magic-btn" style="border-radius:12px;font-size:1rem;">
+                        Send Magic Link ✨
+                    </button>
+                </form>
+
+                <p class="text-xs text-secondary text-center mt-4">
+                    No password needed — we'll email you a one-click sign-in link.
+                </p>
+
+                <!-- Demo mode button (only shown when running locally) -->
+                <div id="demo-section" class="hidden mt-6">
+                    <div class="divider-text">running locally?</div>
+                    <button class="demo-btn" onclick="enterDemo()">🎭 Enter Demo Mode</button>
+                    <p class="text-xs text-secondary text-center mt-2">Simulates a logged-in seller with sample data</p>
+                </div>
+            </div>
+
+            <p class="text-xs text-secondary text-center mt-6">
+                By signing in you agree to our <a href="terms.html" class="text-primary">Terms of Service</a> and <a href="privacy.html" class="text-primary">Privacy Policy</a>.
+            </p>
+        </div>
+
+    </div>
+</main>
+
+<script src="js/app.js"></script>
+<script>
+'use strict';
+
+// Show demo section if running as local file
+if (window.DV_CONFIG?.DEMO_MODE) {
+    document.getElementById('demo-section')?.classList.remove('hidden');
+}
+
+// If already logged in, redirect
+document.addEventListener('DOMContentLoaded', async () => {
+    if (window.netlifyIdentity) {
+        window.netlifyIdentity.on('init', user => {
+            if (user) redirectUser();
+        });
+        window.netlifyIdentity.on('login', () => {
+            window.netlifyIdentity.close();
+            redirectUser();
+        });
+    }
+});
+
+async function redirectUser() {
+    const params   = new URLSearchParams(window.location.search);
+    const returnTo = params.get('returnTo');
+    if (returnTo) { window.location.href = decodeURIComponent(returnTo); return; }
+
+    // Check profile role
+    const user = window.netlifyIdentity?.currentUser();
+    if (!user) { window.location.href = 'index.html'; return; }
+
+    try {
+        const response = await fetch(`/.netlify/functions/profile?user_id=${user.id}`, {
+            headers: { Authorization: `Bearer ${user.token?.access_token}` }
+        });
+        const { profile } = await response.json();
+        if (profile?.role === 'seller') {
+            window.location.href = 'dashboard.html';
+        } else if (profile?.role === 'buyer') {
+            window.location.href = 'buyer-dashboard.html';
+        } else {
+            window.location.href = 'onboard.html';
+        }
+    } catch {
+        window.location.href = 'onboard.html';
+    }
+}
+
+function signInWithGoogle() {
+    if (!window.netlifyIdentity) {
+        DV.Toast.error('Auth not available in local file mode. Deploy to Netlify first.');
+        return;
+    }
+    // Netlify Identity handles Google OAuth when configured in Netlify dashboard
+    window.netlifyIdentity.open('login');
+}
+
+async function sendMagicLink(e) {
+    e.preventDefault();
+    const email = document.getElementById('email-input').value.trim();
+    const btn   = document.getElementById('magic-btn');
+
+    if (!window.netlifyIdentity) {
+        DV.Toast.error('Sign-in requires the site to be deployed on Netlify. Try demo mode instead.');
+        return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = '⏳ Sending…';
+
+    try {
+        // Use Netlify Identity's gotrue to send magic link
+        await window.netlifyIdentity.gotrue.requestPasswordRecovery(email);
+
+        // Show success
+        document.getElementById('sent-to-email').textContent = email;
+        document.getElementById('success-state').classList.remove('hidden');
+        document.getElementById('magic-form').classList.add('hidden');
+    } catch (err) {
+        // If user doesn't exist, try signup flow
+        try {
+            await window.netlifyIdentity.gotrue.signup(email, Math.random().toString(36) + '!A1', { role: 'buyer' });
+            document.getElementById('sent-to-email').textContent = email;
+            document.getElementById('success-state').classList.remove('hidden');
+            document.getElementById('magic-form').classList.add('hidden');
+        } catch (err2) {
+            DV.Toast.error('Could not send link: ' + (err2.json?.msg || err2.message));
+            btn.disabled    = false;
+            btn.textContent = 'Send Magic Link ✨';
+        }
+    }
+}
+
+function enterDemo() {
+    DVAuthManager.enableDemoUser('seller');
+    DV.Toast.success('Demo mode active! Redirecting to dashboard…');
+    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
+}
+</script>
+</body>
+</html>

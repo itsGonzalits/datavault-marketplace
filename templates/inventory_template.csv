@@ -1,0 +1,16 @@
+Date,SKU,Product Name,Category,Supplier,Unit Cost,Selling Price,Units In Stock,Units Sold This Month,Reorder Level,Reorder Quantity,Location,Last Restocked,Notes
+2024-09-01,SK-10021,Leather Tote Bag - Brown,Handbags,Milano Imports,45.00,129.99,24,8,10,20,Main Floor Display,2024-08-15,Bestseller
+2024-09-01,SK-10022,Leather Tote Bag - Black,Handbags,Milano Imports,45.00,129.99,31,12,10,20,Main Floor Display,2024-08-15,
+2024-09-01,SK-20011,Silk Scarf - Floral,Accessories,Parisian Co.,18.00,59.99,47,21,15,30,Accessories Wall,2024-08-20,
+2024-09-01,SK-20012,Silk Scarf - Geometric,Accessories,Parisian Co.,18.00,59.99,12,9,15,30,Accessories Wall,2024-08-20,Low stock
+2024-09-01,SK-30041,Denim Jacket - S,Outerwear,Westcoast Apparel,38.00,119.00,8,3,5,15,Back Rack Row 2,2024-08-10,
+2024-09-01,SK-30042,Denim Jacket - M,Outerwear,Westcoast Apparel,38.00,119.00,15,7,5,15,Back Rack Row 2,2024-08-10,
+2024-09-01,SK-30043,Denim Jacket - L,Outerwear,Westcoast Apparel,38.00,119.00,6,2,5,15,Back Rack Row 2,2024-08-10,
+2024-09-01,SK-30044,Denim Jacket - XL,Outerwear,Westcoast Apparel,38.00,119.00,3,1,5,15,Back Rack Row 2,2024-08-10,Reorder needed
+2024-09-01,SK-40011,Sunglasses - Aviator Gold,Eyewear,SunStyle LLC,22.00,89.99,19,14,8,25,Front Display Case,2024-08-25,High turnover
+2024-09-01,SK-40012,Sunglasses - Round Black,Eyewear,SunStyle LLC,22.00,89.99,28,11,8,25,Front Display Case,2024-08-25,
+2024-09-01,SK-50021,Linen Blouse - White S,Tops,Harbor Textiles,24.00,74.99,14,6,6,18,Blouse Rack,2024-08-18,
+2024-09-01,SK-50022,Linen Blouse - White M,Tops,Harbor Textiles,24.00,74.99,22,9,6,18,Blouse Rack,2024-08-18,
+2024-09-01,SK-60011,Candle - Lavender 8oz,Home Goods,Wicks & Wax,8.50,34.99,55,31,20,40,Gift Section,2024-08-28,Fast mover
+2024-09-01,SK-60012,Candle - Vanilla 8oz,Home Goods,Wicks & Wax,8.50,34.99,42,27,20,40,Gift Section,2024-08-28,
+2024-09-01,SK-70001,Gift Wrap - Premium,Supplies,Local Supplier,1.20,6.99,120,38,50,100,Counter,2024-09-01,

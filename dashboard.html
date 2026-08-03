@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Dashboard | DataVault</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script><script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <!-- css/style.css removed (file does not exist). Dashboard uses its own inline theme below. -->
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --surface-color: #1a1f33;
+            --primary: #4ade80;
+            --primary-dark: #22c55e;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --danger: #ef4444;
+            --card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 3rem;
+            background: rgba(26, 31, 51, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .navbar .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .user-nav {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .verified-badge {
+            background: rgba(74, 222, 128, 0.15);
+            color: var(--primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        .pending-badge {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        .btn-upload {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #0b0f19;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: opacity 0.2s;
+            display: none; /* hidden if not verified */
+        }
+        .btn-upload:hover { opacity: 0.9; }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .header { margin-bottom: 2rem; }
+        .header h1 { font-size: 2rem; margin: 0 0 0.5rem 0; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        .stat-card {
+            background: var(--surface-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-title { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-value { font-size: 2.5rem; font-weight: 700; color: var(--text-main); }
+        
+        .section-box {
+            background: var(--surface-color);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+        }
+        .section-box h2 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        th {
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+        }
+        tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+        
+        .badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge.active { background: rgba(74, 222, 128, 0.1); color: var(--primary); }
+        
+        .btn-action {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.2s;
+        }
+        .btn-action:hover { background: rgba(255,255,255,0.2); }
+        .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .btn-danger:hover { background: rgba(239, 68, 68, 0.2); }
+        
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); }
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border-color);
+            color: white;
+            font-family: inherit;
+        }
+        .btn-submit {
+            background: var(--primary);
+            color: #0b0f19;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-submit:hover { opacity: 0.9; }
+
+        #bid-feed {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .toast {
+            background: rgba(74, 222, 128, 0.2);
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+        
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">DataVault Seller</div>
+    <div class="user-nav">
+        <span id="business-name-display">Loading...</span>
+        <span id="verification-status"></span>
+        <a href="upload.html" id="upload-btn" class="btn-upload">+ Upload Dataset</a>
+        <button onclick="DVAuthManager.signOut()" class="btn-action">Sign Out</button>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="header">
+        <h1 id="greeting">Welcome back.</h1>
+        <p style="color: var(--text-muted);">Here's what's happening with your datasets today.</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-title">Total Earned</div>
+            <div class="stat-value" id="stat-earned">$0.00</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Active Listings</div>
+            <div class="stat-value" id="stat-active">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Bids This Week</div>
+            <div class="stat-value" id="stat-bids">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Avg Sale Price</div>
+            <div class="stat-value" id="stat-avg">$0.00</div>
+        </div>
+    </div>
+
+    <!-- Live Bid Alerts -->
+    <div class="section-box" style="border-left: 4px solid var(--primary);">
+        <h2>Live Bid Alerts ⚡</h2>
+        <div id="bid-feed">
+            <p style="color: var(--text-muted);">Listening for new bids...</p>
+        </div>
+    </div>
+
+    <!-- Datasets Table -->
+    <div class="section-box">
+        <h2>My Datasets</h2>
+        <table id="datasets-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Top Bid</th>
+                    <th>Bids</th>
+                    <th>Time Left</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows injected via JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Earnings History -->
+    <div class="section-box">
+        <h2>Earnings History</h2>
+        <table id="earnings-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Dataset</th>
+                    <th>Sale Price</th>
+                    <th>Platform Fee (5%)</th>
+                    <th>Your Payout</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows injected via JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Settings Form -->
+    <div class="section-box">
+        <h2>Seller Profile Settings</h2>
+        <form id="settings-form">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="form-group">
+                    <label>Business Name</label>
+                    <input type="text" id="set-business-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Industry</label>
+                    <input type="text" id="set-industry" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>City</label>
+                    <input type="text" id="set-city" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>State/Region</label>
+                    <input type="text" id="set-state" class="form-control">
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>PayPal Email (for payouts)</label>
+                    <input type="email" id="set-paypal" class="form-control">
+                </div>
+            </div>
+            <button type="submit" class="btn-submit">Save Settings</button>
+        </form>
+    </div>
+    <!-- Footer -->
+    <footer class="footer section section--sm text-secondary mt-16">
+        <div class="container">
+            <div class="footer__grid grid grid-4 gap-8 mb-8">
+                <div>
+                    <a href="index.html" class="footer__logo font-bold text-lg text-primary mb-4 flex items-center gap-2">
+                        <span>🔐</span> DataVault
+                    </a>
+                    <p class="footer__tagline text-sm">Empowering small businesses to monetize their most valuable asset — their data.</p>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Platform</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="marketplace.html" class="footer__link">Marketplace</a></li>
+                        <li><a href="onboard.html" class="footer__link">For Sellers</a></li>
+                        <li><a href="pricing.html" class="footer__link">Pricing & Fees</a></li>
+                        <li><a href="index.html#how-it-works" class="footer__link">How It Works</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Company & Support</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="about.html" class="footer__link">About DataVault</a></li>
+                        <li><a href="faq.html" class="footer__link">Help Center</a></li>
+                        <li><a href="contact.html" class="footer__link">Contact Support</a></li>
+                        <li><a href="login.html" class="footer__link">Account Login</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Legal & Privacy</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="privacy.html" class="footer__link">Privacy Policy</a></li>
+                        <li><a href="terms.html" class="footer__link">Terms of Service</a></li>
+                        <li><a href="cookies.html" class="footer__link">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="divider mb-6"></div>
+            <div class="footer__bottom flex justify-between items-center text-xs">
+                <p>© 2026 DataVault Inc. All rights reserved. Encrypted & Verified Data Exchange.</p>
+            </div>
+        </div>
+    </footer>
+
+<script src="js/app.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+    // Auth Guard — DVAuthManager auto-inits from auth.js
+    // Wait briefly for Netlify Identity to restore session
+    await new Promise(r => setTimeout(r, 400));
+
+    let user = DVAuthManager.user;
+
+    // Demo Mode handling (append ?demo to URL)
+    if (!user && window.location.search.includes('demo')) {
+        DVAuthManager.enableDemoUser('seller');
+        user = DVAuthManager.user;
+    }
+
+    if (!user) {
+        window.location.href = 'login.html?returnTo=' + encodeURIComponent(window.location.href);
+        return;
+    }
+
+    let userId = user.id;
+    let profile = null;
+    let datasets = [];
+    let earnings = [];
+
+    // Load Real Data via DVSupabase (api.js)
+    async function loadData() {
+        try {
+            const [profileRes, datasetsRes, earningsRes] = await Promise.all([
+                DVSupabase.profiles.get(userId),
+                DVSupabase.datasets.getBySeller(userId),
+                DVSupabase.transactions.getSellerEarnings(),
+            ]);
+            profile  = profileRes.data;
+            datasets = datasetsRes.data || [];
+            earnings = earningsRes.data || [];
+        } catch (err) {
+            console.warn('[dashboard] API error, using fallback data:', err.message);
+            // Fallback demo data
+            profile  = { business_name: 'Acme Data', verified: true, industry: 'Tech', city: 'SF', state: 'CA', paypal_email: 'payouts@acme.com' };
+            datasets = [{ id: '1', title: 'User Behavior Q3', category: 'Analytics', current_top_bid: 500, bid_count: 5, auction_end: new Date(Date.now() + 86400000).toISOString(), status: 'active' }];
+            earnings = [{ created_at: new Date().toISOString(), dataset_title: 'Finance Data 2022', amount: 1000, platform_fee: 50, seller_payout: 950 }];
+        }
+
+        renderProfile();
+        computeAndRenderStats();
+        renderDatasets();
+        renderEarnings();
+        populateSettings();
+        setupRealtime();
+    }
+
+    function renderProfile() {
+        const nameDisplay = profile?.business_name || 'Seller';
+        document.getElementById('business-name-display').innerText = nameDisplay;
+        document.getElementById('greeting').innerText = `Welcome back, ${nameDisplay}.`;
+        
+        const badgeSpan = document.getElementById('verification-status');
+        const uploadBtn = document.getElementById('upload-btn');
+        if (profile?.verified) {
+            badgeSpan.className = 'verified-badge';
+            badgeSpan.innerText = 'Verified Seller ✓';
+            uploadBtn.style.display = 'inline-block';
+        } else {
+            badgeSpan.className = 'pending-badge';
+            badgeSpan.innerHTML = 'Pending Verification <a href="#" style="color:inherit; text-decoration:underline;">Upload Doc</a>';
+        }
+    }
+
+    function computeAndRenderStats() {
+        let totalEarned = 0;
+        let avgSalePrice = 0;
+        let activeCount = 0;
+        let bidsThisWeek = 0; // simplified mock calculation
+        
+        if (earnings) {
+            earnings.forEach(e => {
+                totalEarned += (e.seller_payout || 0);
+            });
+            if (earnings.length > 0) {
+                avgSalePrice = earnings.reduce((sum, e) => sum + (e.amount || 0), 0) / earnings.length;
+            }
+        }
+        
+        if (datasets) {
+            datasets.forEach(d => {
+                if (d.status === 'active') activeCount++;
+                bidsThisWeek += (d.bid_count || 0);
+            });
+        }
+
+        document.getElementById('stat-earned').innerText = `$${totalEarned.toLocaleString()}`;
+        document.getElementById('stat-active').innerText = activeCount;
+        document.getElementById('stat-bids').innerText = bidsThisWeek;
+        document.getElementById('stat-avg').innerText = `$${avgSalePrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+    }
+
+    function renderDatasets() {
+        const tbody = document.querySelector('#datasets-table tbody');
+        tbody.innerHTML = '';
+        if(!datasets || datasets.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7">No datasets listed yet.</td></tr>';
+            return;
+        }
+
+        datasets.forEach(d => {
+            const tr = document.createElement('tr');
+            
+            // basic time left calc
+            let timeLeft = 'Ended';
+            if(d.status === 'active') {
+                const ms = new Date(d.auction_end) - new Date();
+                if(ms > 0) {
+                    const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+                    const hrs  = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    timeLeft = days > 0 ? `${days}d ${hrs}h` : `${hrs}h left`;
+                }
+            }
+
+            tr.innerHTML = `
+                <td><strong>${d.title}</strong></td>
+                <td>${d.category || 'N/A'}</td>
+                <td>$${(d.current_top_bid || 0).toLocaleString()}</td>
+                <td>${d.bid_count || 0}</td>
+                <td>${timeLeft}</td>
+                <td><span class="badge ${d.status === 'active' ? 'active' : ''}">${d.status.toUpperCase()}</span></td>
+                <td>
+                    <a href="dataset.html?id=${d.id}" class="btn-action">View</a>
+                    ${d.status === 'active' ? `<button class="btn-action btn-danger" onclick="endEarly('${d.id}', '${d.winner_id || (d.bids?.[0]?.buyer_id || '')}', '${d.bids?.[0]?.payment_intent_id || ''}')">End Early</button>` : ''}
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderEarnings() {
+        const tbody = document.querySelector('#earnings-table tbody');
+        tbody.innerHTML = '';
+        if(!earnings || earnings.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5">No earnings yet.</td></tr>';
+            return;
+        }
+        earnings.forEach(e => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${new Date(e.created_at).toLocaleDateString()}</td>
+                <td>${e.dataset_title || 'Dataset'}</td>
+                <td>$${(e.amount || 0).toLocaleString()}</td>
+                <td>$${(e.platform_fee || 0).toLocaleString()}</td>
+                <td style="color: var(--primary); font-weight:bold;">$${(e.seller_payout || 0).toLocaleString()}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function populateSettings() {
+        if(profile) {
+            document.getElementById('set-business-name').value = profile.business_name || '';
+            document.getElementById('set-industry').value = profile.industry || '';
+            document.getElementById('set-city').value = profile.city || '';
+            document.getElementById('set-state').value = profile.state || '';
+            document.getElementById('set-paypal').value = profile.paypal_email || '';
+        }
+    }
+
+    document.getElementById('settings-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('.btn-submit');
+        btn.innerText = 'Saving...';
+        const fields = {
+            business_name: document.getElementById('set-business-name').value,
+            industry: document.getElementById('set-industry').value,
+            city: document.getElementById('set-city').value,
+            state: document.getElementById('set-state').value,
+            paypal_email: document.getElementById('set-paypal').value
+        };
+
+        if(window.DVSupabase && window.DVSupabase.profiles) {
+            await DVSupabase.profiles.update(userId, fields);
+            alert('Settings saved successfully!');
+            loadData(); // reload
+        } else {
+            alert('Demo mode: settings saved locally.');
+        }
+        btn.innerText = 'Save Settings';
+    });
+
+    window.endEarly = async function(datasetId, winnerId, paymentIntentId) {
+        if(!confirm('Are you sure you want to end this auction early? The highest bidder will win and be charged.')) return;
+
+        if (!winnerId || !paymentIntentId) {
+            alert('No bids have been placed on this dataset yet.');
+            return;
+        }
+
+        try {
+            const identity = window.netlifyIdentity;
+            const token    = identity?.currentUser()?.token?.access_token;
+            const res = await fetch('/.netlify/functions/capture-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+                body: JSON.stringify({ paymentIntentId, datasetId, winnerId }),
+            });
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || 'Payment capture failed');
+
+            // Also trigger delivery email
+            await fetch('/.netlify/functions/release-dataset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+                body: JSON.stringify({ datasetId, buyerEmail: result.transaction?.buyer_email, buyerName: '' }),
+            });
+
+            alert('Auction ended! Payment captured and dataset delivered to buyer.');
+            loadData();
+        } catch (err) {
+            alert('Error ending auction: ' + err.message);
+        }
+    }
+
+    function setupRealtime() {
+        if(window.DVSupabase && window.DVSupabase.bids && datasets.length > 0) {
+            datasets.forEach(d => {
+                if(d.status === 'active') {
+                    DVSupabase.bids.subscribeToDataset(d.id, (newBid) => {
+                        showBidToast(d.title, newBid.amount);
+                    });
+                }
+            });
+        }
+    }
+
+    function showBidToast(title, amount) {
+        const feed = document.getElementById('bid-feed');
+        // remove placeholder
+        if(feed.querySelector('p')) feed.innerHTML = '';
+        
+        const div = document.createElement('div');
+        div.className = 'toast';
+        div.innerHTML = `<strong>New Bid!</strong> $${amount} placed on <em>${title}</em>`;
+        feed.prepend(div);
+        
+        // auto reload datasets to update bids count and top bid
+        if(window.DVSupabase) {
+            DVSupabase.datasets.getBySeller(userId).then(res => { datasets = res.data || []; renderDatasets(); computeAndRenderStats(); });
+        }
+    }
+
+    // Init
+    loadData();
+});
+</script>
+
+</body>
+</html>

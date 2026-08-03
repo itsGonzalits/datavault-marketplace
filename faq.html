@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help Center | DataVault</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav__inner container flex justify-between items-center">
+            <a href="index.html" class="nav__logo font-bold text-lg flex items-center gap-4">
+                <span class="nav__logo-icon">🔐</span> DataVault
+            </a>
+            <div class="nav__links hidden md:flex items-center gap-6">
+                <a href="marketplace.html" class="nav__link">Marketplace</a>
+                <a href="onboard.html" class="nav__link">For Sellers</a>
+                <a href="#how-it-works" class="nav__link">How It Works</a>
+                <a href="faq.html" class="nav__link nav__link--active">Help</a>
+            </div>
+            <div class="nav__actions flex items-center gap-4">
+                <a href="login.html" class="btn btn--outline btn--sm">Log In</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header section card--primary text-center animate-fade-up">
+        <div class="container container--narrow">
+            <div class="page-header__eyebrow badge badge--accent mb-4">SUPPORT</div>
+            <h1 class="page-header__title font-bold text-4xl mb-6">Help Center</h1>
+            
+            <div class="form-group w-full max-w-lg mx-auto relative">
+                <input type="text" id="faq-search" class="input input--lg w-full pl-12" placeholder="Search for answers…">
+                <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-lg">🔍</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- FAQ Section -->
+    <main class="section animate-fade-up delay-100">
+        <div class="container container--narrow">
+            
+            <!-- Category Tabs -->
+            <div class="chips flex flex-wrap justify-center gap-4 mb-12" id="faq-tabs">
+                <button class="chip chip--selected font-semibold px-4 py-2 rounded-full border bg-primary text-white" data-filter="all">All Questions</button>
+                <button class="chip font-semibold px-4 py-2 rounded-full border text-secondary hover:bg-gray-50" data-filter="sellers">For Sellers</button>
+                <button class="chip font-semibold px-4 py-2 rounded-full border text-secondary hover:bg-gray-50" data-filter="buyers">For Buyers</button>
+                <button class="chip font-semibold px-4 py-2 rounded-full border text-secondary hover:bg-gray-50" data-filter="security">Security & Privacy</button>
+                <button class="chip font-semibold px-4 py-2 rounded-full border text-secondary hover:bg-gray-50" data-filter="payments">Payments & Fees</button>
+            </div>
+
+            <div class="faq-list flex flex-col gap-4">
+                
+                <!-- For Sellers -->
+                <div class="filter-group" data-category="sellers">
+                    <h3 class="filter-group__title font-bold text-xl mb-4 text-primary mt-8">For Sellers</h3>
+                    
+                    <div class="accordion-item card card__body mb-4">
+                        <button class="accordion-btn w-full text-left font-bold flex justify-between items-center text-lg">
+                            How do I upload my data?
+                            <span class="accordion-icon">➕</span>
+                        </button>
+                        <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
+                            Any file type accepted. Drag and drop on the upload page. Our AI organizes it automatically. Usually takes under a minute.
+                        </div>
+                    </div>
+
+                    <div class="accordion-item card card__body mb-4">
+                        <button class="accordion-btn w-full text-left font-bold flex justify-between items-center text-lg">
+                            What file types do you accept?
+                            <span class="accordion-icon">➕</span>
+                        </button>
+                        <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
+                            Everything: spreadsheets, PDFs, Word docs, images, even photos of handwritten records. We convert and normalize it all.
+                        </div>
+                    </div>
+
+                    <div class="accordion-item card card__body mb-4">
+                        <button class="accordion-btn w-full text-left font-bold flex justify-between items-center text-lg">
+                            How does the reserve price work?
+                            <span class="accordion-icon">➕</span>
+                        </button>
+                        <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
+                            You set a secret minimum you're willing to accept. If bidding doesn't reach that amount, the auction closes without a sale — and you can re-list for free.
+                        </div>
+                    </div>
+
+                    <div class="accordion-item card card__body mb-4">
+                        <button class="accordion-btn w-full text-left font-bold flex justify-between items-center text-lg">
+                            When do I get paid?
+                            <span class="accordion-icon">➕</span>
+                        </button>
+                        <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
+                            Within 2 business days of a successful auction close. Direct to your bank account (Stripe) or PayPal.
+                        </div>
+                    </div>
+
+                    <div class="accordion-item card card__body mb-4">
+                        <button class="accordion-btn w-full text-left font-bold flex justify-between items-center text-lg">
+                            What's the platform fee?
+                            <span class="accordion-icon">➕</span>
+                        </button>
+                        <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
+                            DataVault takes 5% of successful sales. If your data sells for $1,000, you receive $950. There are no listing fees or monthly charges.
+                        </div>
+                    </div>
+
+                    <div class="accordion-item card card__body mb-4">
+                        <button class="accordion-btn w-full text-left font-bold flex justify-between items-center text-lg">
+                            Is my data safe?
+                            <span class="accordion-icon">➕</span>
+                        </button>
+                        <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
+                            Your file is encrypted with AES-256 before it ever leaves your device. We never see your raw data. Only the winning buyer receives a decryption key.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- For Buyers -->
+                <div class="filter-group" data-category="buyers">
+                    <h3 class="filter-group__title font-bold text-xl mb-4 text-primary mt-8">For Buyers</h3>
+                    
+                    <div class="accordion-item card card__body mb-4">
+                        <button class="accordion-btn w-full text-left font-bold flex justify-between items-center text-lg">
+                            Do I need to create an account to browse?
+                            <span class="accordion-icon">➕</span>
+                        </button>
+                        <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
+                            No! Browse all datasets for free. You only need to sign up when you're ready to place a bid.
+                        </div>
+                    </div>
+
+                    <div class="accordion-item card card__body mb-4">
+                        <button class="accordion-btn w-full text-left font-bold flex justify-between items-center text-lg">
+                            How does bidding work?
+                            <span class="accordion-icon">➕</span>
+                        </button>
+                        <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
+                            Open English auction — you can see the current top bid and outbid it by at least $10 (or 5%, whichever is more). Bids are binding.
+                        </div>
+                    </div>
+
+                    <div class="accordion-item card card__body mb-4">
+                        <button class="accordion-btn w-full text-left font-bold flex justify-between items-center text-lg">
+                            When am I charged?
+                            <span class="accordion-icon">➕</span>
+                        </button>
+                        <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
+                            Only if your bid wins. We authorize your card when you bid but only charge if you win the auction.
+                        </div>
+                    </div>
+
+                    <div class="accordion-item card card__body mb-4">
+                        <button class="accordion-btn w-full text-left font-bold flex justify-between items-center text-lg">
+                            How do I access my purchased data?
+                            <span class="accordion-icon">➕</span>
+                        </button>
+                        <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
+                            After winning, you'll receive a download link + decryption key by email within minutes of the auction closing.
+                        </div>
+                    </div>
+
+                    <div class="accordion-item card card__body mb-4">
+                        <button class="accordion-btn w-full text-left font-bold flex justify-between items-center text-lg">
+                            What if the reserve price isn't met?
+                            <span class="accordion-icon">➕</span>
+                        </button>
+                        <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
+                            If the top bid is below the seller's reserve, the auction closes without a sale. Your card is not charged.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security & Privacy -->
+                <div class="filter-group" data-category="security">
+                    <h3 class="filter-group__title font-bold text-xl mb-4 text-primary mt-8">Security & Privacy</h3>
+                    
+                    <div class="accordion-item card card__body mb-4">
+                        <button class="accordion-btn w-full text-left font-bold flex justify-between items-center text-lg">
+                            How is encryption handled?
+                            <span class="accordion-icon">➕</span>
+                        </button>
+                        <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
+                            Files are encrypted client-side with AES-256-GCM using your browser's built-in Web Crypto API before upload. We store only encrypted data.
+                        </div>
+                    </div>
+
+                    <div class="accordion-item card card__body mb-4">
+                        <button class="accordion-btn w-full text-left font-bold flex justify-between items-center text-lg">
+                            Is seller information public?
+                            <span class="accordion-icon">➕</span>
+                        </button>
+                        <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
+                            No. Sellers are listed by general business type and city only. No personal names or contact info is displayed.
+                        </div>
+                    </div>
+
+                    <div class="accordion-item card card__body mb-4">
+                        <button class="accordion-btn w-full text-left font-bold flex justify-between items-center text-lg">
+                            How are vendors verified?
+                            <span class="accordion-icon">➕</span>
+                        </button>
+                        <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
+                            We require one official business document (business license, EIN letter, or utility bill). Our team reviews submissions within 24 hours.
+                        </div>
+                    </div>
+
+                    <div class="accordion-item card card__body mb-4">
+                        <button class="accordion-btn w-full text-left font-bold flex justify-between items-center text-lg">
+                            Can DataVault employees see my data?
+                            <span class="accordion-icon">➕</span>
+                        </button>
+                        <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
+                            No. Your encryption key is derived from your account credentials. Our servers never process your plaintext data.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payments & Fees -->
+                <div class="filter-group" data-category="payments">
+                    <h3 class="filter-group__title font-bold text-xl mb-4 text-primary mt-8">Payments & Fees</h3>
+                    
+                    <div class="accordion-item card card__body mb-4">
+                        <button class="accordion-btn w-full text-left font-bold flex justify-between items-center text-lg">
+                            What payment methods are accepted?
+                            <span class="accordion-icon">➕</span>
+                        </button>
+                        <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
+                            Visa, Mastercard, American Express, PayPal, Apple Pay, and Google Pay — all powered by Stripe.
+                        </div>
+                    </div>
+
+                    <div class="accordion-item card card__body mb-4">
+                        <button class="accordion-btn w-full text-left font-bold flex justify-between items-center text-lg">
+                            Is there a listing fee?
+                            <span class="accordion-icon">➕</span>
+                        </button>
+                        <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
+                            Zero. Listing data is completely free. DataVault only earns when you do (5% of successful sales).
+                        </div>
+                    </div>
+
+                    <div class="accordion-item card card__body mb-4">
+                        <button class="accordion-btn w-full text-left font-bold flex justify-between items-center text-lg">
+                            What currencies are supported?
+                            <span class="accordion-icon">➕</span>
+                        </button>
+                        <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
+                            Currently USD only. More currencies coming in 2025.
+                        </div>
+                    </div>
+
+                    <div class="accordion-item card card__body mb-4">
+                        <button class="accordion-btn w-full text-left font-bold flex justify-between items-center text-lg">
+                            What's your refund policy?
+                            <span class="accordion-icon">➕</span>
+                        </button>
+                        <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
+                            If a dataset is materially different from its description, we'll work with both parties to resolve it fairly.
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- Empty State for Search -->
+            <div id="no-results" class="empty-state text-center py-12 hidden">
+                <div class="empty-state__icon text-4xl mb-4 text-gray-300">🔍</div>
+                <h3 class="empty-state__title font-bold text-lg mb-2">No answers found</h3>
+                <p class="empty-state__body text-secondary text-sm">Try searching for different keywords or check out our full FAQ.</p>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer section section--sm text-secondary">
+        <div class="container">
+            <div class="footer__grid grid grid-4 gap-8 mb-8">
+                <div>
+                    <a href="index.html" class="footer__logo font-bold text-lg text-primary mb-4 flex items-center gap-2">
+                        <span>🔐</span> DataVault
+                    </a>
+                    <p class="footer__tagline text-sm">Empowering small businesses to monetize their most valuable asset — their data.</p>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Platform</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="marketplace.html" class="footer__link">Marketplace</a></li>
+                        <li><a href="onboard.html" class="footer__link">For Sellers</a></li>
+                        <li><a href="pricing.html" class="footer__link">Pricing & Fees</a></li>
+                        <li><a href="index.html#how-it-works" class="footer__link">How It Works</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Company & Support</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="about.html" class="footer__link">About DataVault</a></li>
+                        <li><a href="faq.html" class="footer__link">Help Center</a></li>
+                        <li><a href="contact.html" class="footer__link">Contact Support</a></li>
+                        <li><a href="login.html" class="footer__link">Account Login</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Legal & Privacy</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="privacy.html" class="footer__link">Privacy Policy</a></li>
+                        <li><a href="terms.html" class="footer__link">Terms of Service</a></li>
+                        <li><a href="cookies.html" class="footer__link">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="divider mb-6"></div>
+            <div class="footer__bottom flex justify-between items-center text-xs">
+                <p>© 2026 DataVault Inc. All rights reserved. Encrypted & Verified Data Exchange.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/app.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Accordion Logic
+            const accordions = document.querySelectorAll('.accordion-btn');
+            accordions.forEach(acc => {
+                acc.addEventListener('click', () => {
+                    const content = acc.nextElementSibling;
+                    const icon = acc.querySelector('.accordion-icon');
+                    
+                    if (content.classList.contains('hidden')) {
+                        content.classList.remove('hidden');
+                        icon.textContent = '➖';
+                        acc.parentElement.classList.add('accordion-item--open');
+                    } else {
+                        content.classList.add('hidden');
+                        icon.textContent = '➕';
+                        acc.parentElement.classList.remove('accordion-item--open');
+                    }
+                });
+            });
+
+            // Tabs Logic
+            const chips = document.querySelectorAll('.chip');
+            const groups = document.querySelectorAll('.filter-group');
+            
+            chips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    // Update active state
+                    chips.forEach(c => {
+                        c.classList.remove('chip--selected', 'bg-primary', 'text-white');
+                        c.classList.add('text-secondary');
+                    });
+                    chip.classList.add('chip--selected', 'bg-primary', 'text-white');
+                    chip.classList.remove('text-secondary');
+                    
+                    const filter = chip.getAttribute('data-filter');
+                    
+                    groups.forEach(group => {
+                        if (filter === 'all' || group.getAttribute('data-category') === filter) {
+                            group.classList.remove('hidden');
+                        } else {
+                            group.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+
+            // Search Logic
+            const searchInput = document.getElementById('faq-search');
+            const faqItems = document.querySelectorAll('.accordion-item');
+            const noResults = document.getElementById('no-results');
+
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                let hasVisible = false;
+
+                faqItems.forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    if (text.includes(term)) {
+                        item.classList.remove('hidden');
+                        hasVisible = true;
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+                
+                // Hide empty groups during search
+                groups.forEach(group => {
+                    const visibleItems = group.querySelectorAll('.accordion-item:not(.hidden)');
+                    if (visibleItems.length === 0 && term !== '') {
+                        group.querySelector('.filter-group__title').classList.add('hidden');
+                    } else {
+                        group.querySelector('.filter-group__title').classList.remove('hidden');
+                    }
+                });
+
+                if (!hasVisible && term !== '') {
+                    noResults.classList.remove('hidden');
+                } else {
+                    noResults.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

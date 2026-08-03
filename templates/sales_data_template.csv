@@ -1,0 +1,21 @@
+Date,Store Location,Product Category,SKU,Product Name,Units Sold,Unit Price,Revenue,Discount Applied,Day of Week
+2024-07-01,Downtown Austin,Bakery,BK-1021,Sourdough Loaf,24,8.99,215.76,0,Monday
+2024-07-01,Downtown Austin,Pastries,PT-2041,Croissant (Plain),36,3.49,125.64,0,Monday
+2024-07-01,Downtown Austin,Beverages,BV-3011,Drip Coffee 12oz,52,3.25,169.00,0.10,Monday
+2024-07-01,Downtown Austin,Bakery,BK-1022,Whole Wheat Loaf,18,7.99,143.82,0,Monday
+2024-07-02,Downtown Austin,Pastries,PT-2042,Blueberry Muffin,28,3.99,111.72,0,Tuesday
+2024-07-02,Downtown Austin,Bakery,BK-1021,Sourdough Loaf,19,8.99,170.81,0,Tuesday
+2024-07-02,Downtown Austin,Beverages,BV-3012,Latte 12oz,41,5.50,225.50,0,Tuesday
+2024-07-02,South Austin,Bakery,BK-1021,Sourdough Loaf,31,8.99,278.69,0,Tuesday
+2024-07-03,South Austin,Pastries,PT-2043,Cinnamon Roll,22,4.50,99.00,0,Wednesday
+2024-07-03,Downtown Austin,Beverages,BV-3011,Drip Coffee 12oz,67,3.25,217.75,0.10,Wednesday
+2024-07-03,Downtown Austin,Bakery,BK-1023,Rye Loaf,14,8.49,118.86,0,Wednesday
+2024-07-04,Downtown Austin,Pastries,PT-2041,Croissant (Plain),55,3.49,191.95,0.15,Thursday
+2024-07-04,South Austin,Bakery,BK-1021,Sourdough Loaf,27,8.99,242.73,0,Thursday
+2024-07-05,Downtown Austin,Pastries,PT-2044,Chocolate Muffin,19,3.99,75.81,0,Friday
+2024-07-05,Downtown Austin,Beverages,BV-3013,Iced Coffee 16oz,38,4.75,180.50,0,Friday
+2024-07-05,South Austin,Pastries,PT-2043,Cinnamon Roll,41,4.50,184.50,0.10,Friday
+2024-07-06,Downtown Austin,Bakery,BK-1021,Sourdough Loaf,44,8.99,395.56,0,Saturday
+2024-07-06,South Austin,Bakery,BK-1021,Sourdough Loaf,52,8.99,467.48,0,Saturday
+2024-07-06,Downtown Austin,Pastries,PT-2041,Croissant (Plain),68,3.49,237.32,0,Saturday
+2024-07-07,Downtown Austin,Bakery,BK-1022,Whole Wheat Loaf,29,7.99,231.71,0,Sunday

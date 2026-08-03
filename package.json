@@ -1,0 +1,14 @@
+{
+  "name": "datavault-marketplace",
+  "version": "1.0.0",
+  "description": "DataVault — secure data marketplace for small businesses",
+  "private": true,
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0",
+    "puppeteer": "^25.4.0",
+    "stripe": "^17.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

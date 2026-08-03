@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketplace | DataVault</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script><script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    
+    <link rel="stylesheet" href="styles/main.css">
+    <style>
+        body { background-color: #FFFBF5; font-family: 'Outfit', sans-serif; margin: 0; color: #333; }
+        .nav { background: #fff; padding: 1rem 2rem; border-bottom: 1px solid #eaeaea; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav__logo { font-size: 1.5rem; font-weight: 700; color: #0D9488; text-decoration: none; }
+        .nav__links { display: flex; gap: 2rem; }
+        .nav__link { text-decoration: none; color: #555; font-weight: 500; }
+        .nav__link--active { color: #0D9488; font-weight: 600; }
+        .btn { padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; border: none; }
+        .btn--primary { background: #0D9488; color: #fff; }
+        .btn--accent { background: #F97316; color: #fff; }
+        .btn--ghost { background: transparent; color: #555; border: 1px solid transparent; }
+        .btn--ghost:hover { background: #f0f0f0; }
+        .btn--sm { padding: 0.25rem 0.75rem; font-size: 0.875rem; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .search-bar { background: #fff; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 2rem; display: flex; gap: 1rem; }
+        .input { flex: 1; padding: 1rem; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; font-family: 'Outfit', sans-serif; }
+        .search-btn { padding: 1rem 2rem; font-size: 1rem; }
+        .layout { display: flex; gap: 2rem; }
+        .sidebar { width: 240px; flex-shrink: 0; }
+        .main-content { flex: 1; }
+        .sort-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .filter-group { background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1rem; }
+        .filter-group__title { font-weight: 600; margin-bottom: 1rem; font-size: 1.1rem; }
+        .checkbox-label { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.9rem; cursor: pointer; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        
+        /* Dataset Card Styles */
+        .dataset-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #eaeaea; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; }
+        .dataset-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .dataset-card__stripe { height: 6px; background: #0D9488; }
+        .dataset-card__body { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
+        .badge { font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600; }
+        .badge--primary { background: #E0F2FE; color: #0D9488; }
+        .badge--success { background: #dcfce7; color: #166534; margin-left: 0.5rem; }
+        .dataset-card__tags { margin-bottom: 0.5rem; }
+        .dataset-card__title { font-size: 1.1rem; font-weight: 600; margin: 0 0 0.5rem 0; color: #222; }
+        .dataset-card__meta { font-size: 0.85rem; color: #666; margin-bottom: 1rem; }
+        .bid-info { flex: 1; margin-bottom: 1rem; }
+        .bid-label { font-size: 0.75rem; color: #666; }
+        .bid-amount { color: #0D9488; font-weight: 700; font-size: 1.25rem; }
+        .bid-count { font-size: 0.75rem; color: #666; }
+        .dataset-card__footer { display: flex; align-items: center; justify-content: space-between; padding-top: 1rem; border-top: 1px solid #eaeaea; }
+        .timer { color: #F97316; font-weight: 600; font-size: 0.9rem; }
+        
+        .pagination { display: flex; justify-content: center; gap: 0.5rem; margin-top: 3rem; align-items: center; }
+        .page-num { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer; }
+        .page-num--active { background: #0D9488; color: #fff; font-weight: 600; }
+        .footer { background: #222; color: #fff; padding: 3rem 2rem; margin-top: 4rem; text-align: center; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .skeleton-card { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        
+        @media (max-width: 768px) {
+            .layout { flex-direction: column; }
+            .sidebar { width: 100%; }
+            .grid-3 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="nav">
+    <a href="index.html" class="nav__logo">🔐 DataVault</a>
+    <div class="nav__links">
+        <a href="marketplace.html" class="nav__link nav__link--active">Marketplace</a>
+        <a href="onboard.html" class="nav__link">For Sellers</a>
+        <a href="#how-it-works" class="nav__link">How It Works</a>
+        <a href="faq.html" class="nav__link">Help</a>
+    </div>
+    <div class="nav__actions" id="nav-actions">
+        <!-- Managed by auth.js -->
+    </div>
+</nav>
+
+<div class="container">
+    <div class="search-bar">
+        <input type="text" id="search-input" class="input" placeholder="🔍 Search datasets by keyword, category, or location...">
+        <button class="btn btn--primary search-btn" onclick="loadDatasets()">Search</button>
+    </div>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="filter-group">
+                <div class="filter-group__title">Category</div>
+                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Retail Sales"> Retail Sales</label>
+                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Inventory"> Inventory</label>
+                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Foot Traffic"> Foot Traffic</label>
+                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Local Pricing"> Local Pricing</label>
+                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Customer Demographics"> Customer Demographics</label>
+                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Restaurant Orders"> Restaurant Orders</label>
+                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Services"> Services</label>
+                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Other"> Other</label>
+            </div>
+
+            <div class="filter-group">
+                <div class="filter-group__title">Price Range</div>
+                <input type="range" min="0" max="2000" style="width: 100%; margin-bottom: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                    <span>$0</span>
+                    <span>$2,000+</span>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <div class="filter-group__title">Time Remaining</div>
+                <label class="checkbox-label"><input type="radio" name="time" checked> Any</label>
+                <label class="checkbox-label"><input type="radio" name="time"> Ending Today</label>
+                <label class="checkbox-label"><input type="radio" name="time"> Ending This Week</label>
+                <label class="checkbox-label"><input type="radio" name="time"> New Listings</label>
+            </div>
+
+            <button class="btn btn--ghost" style="width: 100%;" onclick="resetFilters()">Reset Filters</button>
+        </aside>
+
+        <main class="main-content">
+            <div class="sort-bar">
+                <span id="result-count" style="font-weight: 500; color: #555;">Loading datasets...</span>
+                <select id="sort-select" class="input" style="width: 200px; padding: 0.5rem;">
+                    <option value="Ending Soon">Ending Soon</option>
+                    <option value="Top Bid">Top Bid</option>
+                    <option value="Newest">Newest</option>
+                    <option value="Most Bids">Most Bids</option>
+                </select>
+            </div>
+
+            <div id="dataset-grid" class="grid-3 animate-fade-up">
+                <!-- Datasets render here -->
+            </div>
+
+            <div id="pagination" class="pagination" style="display: none;">
+                <button class="btn btn--ghost">← Prev</button>
+                <div class="page-num page-num--active">1</div>
+                <div class="page-num">2</div>
+                <div class="page-num">3</div>
+                <div>...</div>
+                <button class="btn btn--ghost">Next →</button>
+            </div>
+        </main>
+    </div>
+</div>
+
+    <!-- Footer -->
+    <footer class="footer section section--sm text-secondary">
+        <div class="container">
+            <div class="footer__grid grid grid-4 gap-8 mb-8">
+                <div>
+                    <a href="index.html" class="footer__logo font-bold text-lg text-primary mb-4 flex items-center gap-2">
+                        <span>🔐</span> DataVault
+                    </a>
+                    <p class="footer__tagline text-sm">Empowering small businesses to monetize their most valuable asset — their data.</p>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Platform</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="marketplace.html" class="footer__link">Marketplace</a></li>
+                        <li><a href="onboard.html" class="footer__link">For Sellers</a></li>
+                        <li><a href="pricing.html" class="footer__link">Pricing & Fees</a></li>
+                        <li><a href="index.html#how-it-works" class="footer__link">How It Works</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Company & Support</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="about.html" class="footer__link">About DataVault</a></li>
+                        <li><a href="faq.html" class="footer__link">Help Center</a></li>
+                        <li><a href="contact.html" class="footer__link">Contact Support</a></li>
+                        <li><a href="login.html" class="footer__link">Account Login</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Legal & Privacy</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="privacy.html" class="footer__link">Privacy Policy</a></li>
+                        <li><a href="terms.html" class="footer__link">Terms of Service</a></li>
+                        <li><a href="cookies.html" class="footer__link">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="divider mb-6"></div>
+            <div class="footer__bottom flex justify-between items-center text-xs">
+                <p>© 2026 DataVault Inc. All rights reserved. Encrypted & Verified Data Exchange.</p>
+            </div>
+        </div>
+    </footer>
+
+<script>
+    let currentParams = {
+        search: '',
+        category: '',
+        sort: 'Ending Soon',
+        page: 1
+    };
+    
+    let debounceTimer;
+    
+    async function loadDatasets() {
+        const grid = document.getElementById('dataset-grid');
+        const countDisplay = document.getElementById('result-count');
+        const pagination = document.getElementById('pagination');
+        
+        // Skeleton loading state
+        grid.innerHTML = Array(6).fill().map(() => `
+            <div class="dataset-card skeleton-card">
+                <div class="dataset-card__stripe" style="background:#eaeaea;"></div>
+                <div class="dataset-card__body" style="gap:1rem;">
+                    <div style="height:20px; background:#eaeaea; border-radius:4px; width:40%;"></div>
+                    <div style="height:28px; background:#eaeaea; border-radius:4px; width:80%;"></div>
+                    <div style="height:20px; background:#eaeaea; border-radius:4px; width:60%;"></div>
+                    <div style="flex:1;"></div>
+                    <div style="height:40px; background:#eaeaea; border-radius:4px; margin-top:1rem;"></div>
+                </div>
+            </div>
+        `).join('');
+        
+        try {
+            const result = await (window.DVSupabase ? DVSupabase.datasets.list(currentParams) : Promise.resolve({data: [], error: null, count: 0}));
+            const data = result.data || [];
+            const count = result.count || data.length;
+            
+            if (result.error) throw result.error;
+            
+            if (data.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; background: #fff; border-radius: 12px; border: 1px solid #eaeaea;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+                        <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">No datasets found</h3>
+                        <p style="color: #666; margin-bottom: 1.5rem;">No datasets found matching your search. Try different keywords.</p>
+                        <button class="btn btn--primary" onclick="resetFilters()">Clear Filters</button>
+                    </div>
+                `;
+                countDisplay.textContent = 'Showing 0 datasets';
+                pagination.style.display = 'none';
+                return;
+            }
+            
+            grid.innerHTML = data.map(ds => {
+                const isVerified = ds.seller?.verified || ds.profiles?.verified;
+                const bidAmount = ds.current_top_bid || ds.starting_bid || 0;
+                return `
+                    <a href="dataset.html?id=${ds.id}" class="dataset-card" style="text-decoration:none;color:inherit;">
+                        <div class="dataset-card__stripe"></div>
+                        <div class="dataset-card__body">
+                            <div class="dataset-card__tags">
+                                <span class="badge badge--primary">${ds.category || 'Other'}</span>
+                                ${isVerified ? '<span class="badge badge--success">Verified</span>' : ''}
+                            </div>
+                            <h3 class="dataset-card__title">${ds.title || 'Untitled Dataset'}</h3>
+                            <div class="dataset-card__meta text-sm text-secondary">${ds.location || 'Unknown Location'} • ${ds.row_count?.toLocaleString() || '?'} rows</div>
+                            <div class="bid-info">
+                                <div class="bid-label">Current Top Bid</div>
+                                <div class="bid-amount">$${bidAmount.toFixed(2)}</div>
+                                <div class="bid-count">${ds.bid_count || 0} bids</div>
+                            </div>
+                            <div class="dataset-card__footer">
+                                <div class="timer text-sm">${formatTimeLeft(ds.auction_end)}</div>
+                                <button class="btn btn--accent btn--sm">Place Bid →</button>
+                            </div>
+                        </div>
+                    </a>
+                `;
+            }).join('');
+            
+            countDisplay.textContent = `Showing ${data.length} of ${count > 24 ? count + '+' : count} datasets`;
+            pagination.style.display = count > 24 ? 'flex' : 'none';
+            
+        } catch (err) {
+            console.error('Failed to load datasets:', err);
+            grid.innerHTML = '<div style="grid-column: 1/-1; padding: 2rem; color: #dc2626; text-align: center; border: 1px solid #ffcaca; border-radius: 8px; background: #fff5f5;">Error loading datasets. Please try again.</div>';
+        }
+    }
+    
+    function formatTimeLeft(isoDate) {
+        if (!isoDate) return 'No time set';
+        const now = new Date();
+        const end = new Date(isoDate);
+        const diff = end - now;
+        
+        if (diff <= 0) return 'Auction ended';
+        
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((diff / 1000 / 60) % 60);
+        
+        if (days > 0) return `${days}d ${hours}h left`;
+        if (hours > 0) return `${hours}h ${minutes}m left`;
+        if (minutes > 0) return 'Ending soon!';
+        return 'Ending soon!';
+    }
+    
+    function resetFilters() {
+        document.getElementById('search-input').value = '';
+        document.querySelectorAll('.category-filter').forEach(cb => cb.checked = false);
+        document.getElementById('sort-select').value = 'Ending Soon';
+        currentParams = { search: '', category: '', sort: 'Ending Soon', page: 1 };
+        loadDatasets();
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                currentParams.search = e.target.value;
+                currentParams.page = 1;
+                loadDatasets();
+            }, 400);
+        });
+        
+        document.querySelectorAll('.category-filter').forEach(cb => {
+            cb.addEventListener('change', () => {
+                const selected = Array.from(document.querySelectorAll('.category-filter:checked')).map(cb => cb.value);
+                currentParams.category = selected.join(',');
+                currentParams.page = 1;
+                loadDatasets();
+            });
+        });
+        
+        document.getElementById('sort-select').addEventListener('change', (e) => {
+            currentParams.sort = e.target.value;
+            currentParams.page = 1;
+            loadDatasets();
+        });
+        
+        loadDatasets();
+    });
+</script>
+
+<script src="js/app.js"></script>
+</body>
+</html>

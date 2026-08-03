@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - DataVault</title>
+    <meta name="description" content="Contact DataVault support. We're here to help.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js" defer></script>
+    <style>
+        .success-msg { display: none; }
+        .success-msg.show { display: block; }
+        .form-container.hide { display: none; }
+        .input { width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.375rem; font-family: inherit; }
+        .input:focus { outline: none; border-color: #0D9488; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav__inner container flex justify-between items-center">
+            <a href="index.html" class="nav__logo font-bold text-lg flex items-center gap-4">
+                <span class="nav__logo-icon">🔐</span> DataVault
+            </a>
+            <div class="nav__links hidden md:flex items-center gap-6">
+                <a href="marketplace.html" class="nav__link">Marketplace</a>
+                <a href="onboard.html" class="nav__link">For Sellers</a>
+                <a href="faq.html" class="nav__link">Help</a>
+            </div>
+            <div class="nav__actions flex items-center gap-4">
+                <a href="login.html" class="btn btn--outline btn--sm">Log In</a>
+                <a href="onboard.html" class="btn btn--accent btn--sm">Start Selling</a>
+            </div>
+        </div>
+    </nav>
+    <main>
+        <section class="section container animate-fade-up">
+            <h1 class="text-xl font-bold mb-8 text-center text-primary">Contact Us</h1>
+            
+            <div class="grid grid-2 gap-8">
+                <div class="card p-6">
+                    <div id="contact-success" class="success-msg card--primary p-6 text-center" style="border-radius: 0.5rem; margin-bottom: 1rem;">
+                        <h3 class="font-bold mb-2 text-lg">Message Sent!</h3>
+                        <p class="text-sm">We'll get back to you within 24 hours.</p>
+                    </div>
+                    
+                    <form id="contact-form" class="form-container">
+                        <div class="form-group mb-4">
+                            <label class="form-label block mb-2 font-bold text-sm">Name</label>
+                            <input type="text" class="input" required>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label class="form-label block mb-2 font-bold text-sm">Email</label>
+                            <input type="email" class="input" required>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label class="form-label block mb-2 font-bold text-sm">Subject</label>
+                            <select class="input" required>
+                                <option value="">Select a subject...</option>
+                                <option>General</option>
+                                <option>Seller Support</option>
+                                <option>Buyer Support</option>
+                                <option>Billing</option>
+                                <option>Security</option>
+                                <option>Press</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label class="form-label block mb-2 font-bold text-sm">Message</label>
+                            <textarea class="input" style="height: 8rem; resize: vertical;" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn--primary btn--full mt-4">Send Message</button>
+                    </form>
+                </div>
+                
+                <div class="flex" style="flex-direction: column; gap: 1.5rem;">
+                    <div class="card p-6">
+                        <h3 class="font-bold text-lg mb-2 text-primary">Support</h3>
+                        <p class="text-sm text-secondary font-bold mb-2">support@datavault.io</p>
+                        <p class="text-xs text-secondary">Typical response time: 24 hours</p>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="font-bold text-lg mb-2 text-primary">Security</h3>
+                        <p class="text-sm text-secondary font-bold">security@datavault.io</p>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="font-bold text-lg mb-2 text-primary">Press</h3>
+                        <p class="text-sm text-secondary font-bold">press@datavault.io</p>
+                    </div>
+                    <div class="card p-6 card--accent" style="color: white;">
+                        <h3 class="font-bold text-lg mb-2">Have a quick question?</h3>
+                        <a href="faq.html" class="btn btn--outline btn--sm mt-2" style="background: white; color: #F97316; border: none;">View our FAQ</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                const form = document.getElementById("contact-form");
+                const successMsg = document.getElementById("contact-success");
+                
+                if(form) {
+                    form.addEventListener("submit", (e) => {
+                        e.preventDefault();
+                        form.classList.add("hide");
+                        successMsg.classList.add("show");
+                    });
+                }
+            });
+        </script>
+    </main>
+    <!-- Footer -->
+    <footer class="footer section section--sm text-secondary">
+        <div class="container">
+            <div class="footer__grid grid grid-4 gap-8 mb-8">
+                <div>
+                    <a href="index.html" class="footer__logo font-bold text-lg text-primary mb-4 flex items-center gap-2">
+                        <span>🔐</span> DataVault
+                    </a>
+                    <p class="footer__tagline text-sm">Empowering small businesses to monetize their most valuable asset — their data.</p>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Platform</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="marketplace.html" class="footer__link">Marketplace</a></li>
+                        <li><a href="onboard.html" class="footer__link">For Sellers</a></li>
+                        <li><a href="pricing.html" class="footer__link">Pricing & Fees</a></li>
+                        <li><a href="index.html#how-it-works" class="footer__link">How It Works</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Company & Support</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="about.html" class="footer__link">About DataVault</a></li>
+                        <li><a href="faq.html" class="footer__link">Help Center</a></li>
+                        <li><a href="contact.html" class="footer__link">Contact Support</a></li>
+                        <li><a href="login.html" class="footer__link">Account Login</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Legal & Privacy</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="privacy.html" class="footer__link">Privacy Policy</a></li>
+                        <li><a href="terms.html" class="footer__link">Terms of Service</a></li>
+                        <li><a href="cookies.html" class="footer__link">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="divider mb-6"></div>
+            <div class="footer__bottom flex justify-between items-center text-xs">
+                <p>© 2026 DataVault Inc. All rights reserved. Encrypted & Verified Data Exchange.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

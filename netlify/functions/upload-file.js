@@ -1,0 +1,144 @@
+/* ============================================================
+   Netlify Function: /upload-file
+   POST multipart/form-data:
+     - file: the encrypted blob
+     - name: original filename
+     - type: 'dataset' | 'verification'
+   Returns: { path, url }
+   ============================================================ */
+
+const { getStore } = require('@netlify/blobs');
+
+const CORS = {
+  'Access-Control-Allow-Origin':  '*',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
+exports.handler = async (event, context) => {
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers: CORS, body: '' };
+  }
+
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'Method not allowed' }) };
+  }
+
+  try {
+    const user = context.clientContext?.user;
+    if (!user) {
+      return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: 'Unauthorized' }) };
+    }
+
+    // Parse multipart body
+    // Netlify passes base64-encoded bodies for binary
+    const contentType = event.headers['content-type'] || '';
+
+    if (!contentType.includes('multipart/form-data')) {
+      return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Expected multipart/form-data' }) };
+    }
+
+    // Parse multipart manually (Netlify Functions don't have native multipart parser)
+    const boundary = contentType.split('boundary=')[1];
+    if (!boundary) {
+      return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'No boundary in multipart' }) };
+    }
+
+    const bodyBuffer = event.isBase64Encoded
+      ? Buffer.from(event.body, 'base64')
+      : Buffer.from(event.body || '');
+
+    const parts = parseMultipart(bodyBuffer, boundary);
+
+    let fileBuffer  = null;
+    let fileName    = 'file.enc';
+    let uploadType  = 'dataset';
+
+    for (const part of parts) {
+      if (part.name === 'file')   { fileBuffer = part.data; fileName = part.filename || fileName; }
+      if (part.name === 'name')   { fileName   = part.data.toString(); }
+      if (part.name === 'type')   { uploadType = part.data.toString(); }
+    }
+
+    if (!fileBuffer) {
+      return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'No file provided' }) };
+    }
+
+    // Store in Netlify Blobs
+    const storeName = uploadType === 'verification' ? 'verification-docs' : 'encrypted-files';
+    const store     = getStore({ name: storeName, consistency: 'strong' });
+    const fileKey   = `${user.sub}/${Date.now()}-${fileName}`;
+
+    await store.set(fileKey, fileBuffer, { metadata: {
+      originalName: fileName,
+      uploadedBy:   user.sub,
+      uploadedAt:   new Date().toISOString(),
+      type:         uploadType,
+    }});
+
+    // Generate a signed URL (token-protected, 48-hour expiry)
+    // For Netlify Blobs, we use our own endpoint to serve files securely
+    const downloadToken = Buffer.from(JSON.stringify({ key: fileKey, exp: Date.now() + 48 * 3600 * 1000, uid: user.sub })).toString('base64url');
+    const downloadUrl   = `/api/download?token=${downloadToken}`;
+
+    return {
+      statusCode: 200,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: fileKey, url: downloadUrl }),
+    };
+
+  } catch (err) {
+    console.error('[upload-file]', err);
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: err.message }) };
+  }
+};
+
+/* ── Minimal multipart parser ── */
+function parseMultipart(buffer, boundary) {
+  const parts  = [];
+  const sep    = Buffer.from('--' + boundary);
+  const end    = Buffer.from('--' + boundary + '--');
+  let   offset = 0;
+
+  while (offset < buffer.length) {
+    const start = indexOf(buffer, sep, offset);
+    if (start === -1) break;
+    offset = start + sep.length + 2; // skip \r\n
+
+    if (buffer.slice(start, start + end.length).equals(end)) break;
+
+    // Find headers end (\r\n\r\n)
+    const headersEnd = indexOf(buffer, Buffer.from('\r\n\r\n'), offset);
+    if (headersEnd === -1) break;
+
+    const headersRaw = buffer.slice(offset, headersEnd).toString();
+    offset = headersEnd + 4;
+
+    // Find next boundary
+    const nextBound = indexOf(buffer, sep, offset);
+    const dataEnd   = nextBound === -1 ? buffer.length : nextBound - 2; // -2 for \r\n
+
+    const data = buffer.slice(offset, dataEnd);
+
+    // Parse headers
+    const dispositionMatch = headersRaw.match(/Content-Disposition:.*?name="([^"]+)"(?:.*?filename="([^"]+)")?/is);
+    if (dispositionMatch) {
+      parts.push({
+        name:     dispositionMatch[1],
+        filename: dispositionMatch[2] || null,
+        data,
+      });
+    }
+
+    offset = nextBound === -1 ? buffer.length : nextBound;
+  }
+
+  return parts;
+}
+
+function indexOf(buf, search, start = 0) {
+  for (let i = start; i <= buf.length - search.length; i++) {
+    if (buf.slice(i, i + search.length).equals(search)) return i;
+  }
+  return -1;
+}

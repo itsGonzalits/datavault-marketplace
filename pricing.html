@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - DataVault</title>
+    <meta name="description" content="DataVault Pricing. Simple and transparent 5% platform fee for sellers, free to browse for buyers.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js" defer></script>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav__inner container flex justify-between items-center">
+            <a href="index.html" class="nav__logo font-bold text-lg flex items-center gap-4">
+                <span class="nav__logo-icon">🔐</span> DataVault
+            </a>
+            <div class="nav__links hidden md:flex items-center gap-6">
+                <a href="marketplace.html" class="nav__link">Marketplace</a>
+                <a href="onboard.html" class="nav__link">For Sellers</a>
+                <a href="faq.html" class="nav__link">Help</a>
+            </div>
+            <div class="nav__actions flex items-center gap-4">
+                <a href="login.html" class="btn btn--outline btn--sm">Log In</a>
+                <a href="onboard.html" class="btn btn--accent btn--sm">Start Selling</a>
+            </div>
+        </div>
+    </nav>
+    <main>
+        <section class="section container animate-fade-up">
+            <div class="text-center mb-8">
+                <h1 class="text-xl font-bold mb-4 text-primary">Simple, Transparent Pricing</h1>
+                <p class="text-secondary text-lg max-w-2xl" style="margin: 0 auto;">No monthly fees. No listing fees. We only succeed when you succeed.</p>
+            </div>
+            
+            <div class="card p-6 mb-8 text-center" style="background-color: #f9fafb;">
+                <h2 class="font-bold text-lg mb-4 text-primary">DataVault vs Traditional Data Brokers</h2>
+                <div class="flex justify-center items-center gap-8">
+                    <div>
+                        <p class="font-bold text-accent mb-2" style="font-size: 2.5rem;">5%</p>
+                        <p class="text-sm font-bold">DataVault Fee</p>
+                    </div>
+                    <div class="font-bold text-secondary" style="font-size: 1.5rem;">vs</div>
+                    <div>
+                        <p class="font-bold text-secondary mb-2" style="font-size: 2.5rem;">20-50%</p>
+                        <p class="text-sm font-bold text-secondary">Broker Fee</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-2 gap-8 mb-8">
+                <div class="card p-6 card--primary text-center">
+                    <h2 class="font-bold text-lg mb-2">For Sellers</h2>
+                    <div class="text-xl font-bold mb-4">FREE to List</div>
+                    <ul class="text-sm flex flex-col gap-2 mb-6" style="list-style: none; padding: 0;">
+                        <li>✔️ $0 monthly fees</li>
+                        <li>✔️ 5% success fee on sales</li>
+                        <li>✔️ Keep 95% of your revenue</li>
+                    </ul>
+                    <a href="onboard.html" class="btn btn--accent btn--full">Start Selling Free</a>
+                </div>
+                
+                <div class="card p-6 text-center">
+                    <h2 class="font-bold text-lg mb-2 text-primary">For Buyers</h2>
+                    <div class="text-xl font-bold mb-4 text-primary">Pay What You Bid</div>
+                    <ul class="text-sm text-secondary flex flex-col gap-2 mb-6" style="list-style: none; padding: 0;">
+                        <li>✔️ Free to browse</li>
+                        <li>✔️ Only charged if you win</li>
+                        <li>✔️ Stripe-secured payments</li>
+                    </ul>
+                    <a href="marketplace.html" class="btn btn--primary btn--full">Browse Marketplace</a>
+                </div>
+            </div>
+            
+            <div class="mt-8 pt-8" style="border-top: 1px solid #e5e7eb;">
+                <h2 class="text-lg font-bold mb-6 text-center text-primary">Frequently Asked Questions</h2>
+                <div class="grid grid-2 gap-6">
+                    <div class="card p-4">
+                        <h4 class="font-bold mb-2">Are there any hidden fees?</h4>
+                        <p class="text-sm text-secondary">No. Sellers pay a flat 5% on completed sales. Buyers pay exactly their winning bid amount.</p>
+                    </div>
+                    <div class="card p-4">
+                        <h4 class="font-bold mb-2">How do payouts work?</h4>
+                        <p class="text-sm text-secondary">Seller payouts are securely processed via Stripe Connect within 48 hours of a completed auction.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <!-- Footer -->
+    <footer class="footer section section--sm text-secondary">
+        <div class="container">
+            <div class="footer__grid grid grid-4 gap-8 mb-8">
+                <div>
+                    <a href="index.html" class="footer__logo font-bold text-lg text-primary mb-4 flex items-center gap-2">
+                        <span>🔐</span> DataVault
+                    </a>
+                    <p class="footer__tagline text-sm">Empowering small businesses to monetize their most valuable asset — their data.</p>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Platform</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="marketplace.html" class="footer__link">Marketplace</a></li>
+                        <li><a href="onboard.html" class="footer__link">For Sellers</a></li>
+                        <li><a href="pricing.html" class="footer__link">Pricing & Fees</a></li>
+                        <li><a href="index.html#how-it-works" class="footer__link">How It Works</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Company & Support</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="about.html" class="footer__link">About DataVault</a></li>
+                        <li><a href="faq.html" class="footer__link">Help Center</a></li>
+                        <li><a href="contact.html" class="footer__link">Contact Support</a></li>
+                        <li><a href="login.html" class="footer__link">Account Login</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Legal & Privacy</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="privacy.html" class="footer__link">Privacy Policy</a></li>
+                        <li><a href="terms.html" class="footer__link">Terms of Service</a></li>
+                        <li><a href="cookies.html" class="footer__link">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="divider mb-6"></div>
+            <div class="footer__bottom flex justify-between items-center text-xs">
+                <p>© 2026 DataVault Inc. All rights reserved. Encrypted & Verified Data Exchange.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

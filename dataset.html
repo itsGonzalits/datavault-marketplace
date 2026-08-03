@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dataset Detail | DataVault</title>
+    <meta name="description" content="View dataset details and place a bid on DataVault — the marketplace for real small business data.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script><script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <style>
+        .detail-layout { display: flex; gap: 3rem; align-items: flex-start; }
+        .detail-main { flex: 1; min-width: 0; }
+        .detail-aside { width: 340px; flex-shrink: 0; }
+        @media (max-width: 900px) { .detail-layout { flex-direction: column; } .detail-aside { width: 100%; } }
+        .bid-panel { position: sticky; top: 100px; }
+        .bid-price { font-size: 2.8rem; font-weight: 800; color: var(--c-text); line-height: 1; }
+        .bid-timer { display: flex; gap: 12px; margin: 16px 0; }
+        .timer-block { background: #FFF3ED; padding: 8px 14px; border-radius: var(--r-md); text-align: center; min-width: 56px; }
+        .timer-val { font-size: 1.3rem; font-weight: 800; color: var(--c-accent); display: block; }
+        .timer-label { font-size: 0.65rem; color: var(--c-accent); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; }
+        .spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+        .spec-item { background: var(--c-bg); padding: 14px 16px; border-radius: var(--r-md); }
+        .spec-label { font-size: var(--fs-xs); color: var(--c-text-secondary); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+        .spec-value { font-weight: 700; font-size: 1rem; }
+        .data-preview-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .data-preview-table th { background: var(--c-bg); padding: 10px 14px; text-align: left; font-weight: 600; color: var(--c-text-secondary); border-bottom: 2px solid var(--c-border); white-space: nowrap; }
+        .data-preview-table td { padding: 10px 14px; border-bottom: 1px solid var(--c-border); color: var(--c-text); }
+        .data-preview-table tr:last-child td { border-bottom: none; }
+        .data-preview-table tr:hover td { background: var(--c-bg); }
+        .bid-input-wrap { position: relative; }
+        .bid-input-wrap .currency { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--c-text-secondary); font-size: 1.2rem; }
+        .bid-input-wrap input { padding-left: 32px; font-size: 1.4rem; font-weight: 700; }
+        .breadcrumb a { color: var(--c-text-secondary); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--c-primary); }
+        .bid-history-row:first-child td { font-weight: 700; }
+        .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: skeleton-load 1.5s infinite; border-radius: var(--r-md); }
+        @keyframes skeleton-load { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    </style>
+</head>
+<body>
+
+    <nav class="nav">
+        <div class="nav__inner container flex justify-between items-center">
+            <a href="index.html" class="nav__logo font-bold text-lg flex items-center gap-4">
+                <span class="nav__logo-icon">🔐</span> DataVault
+            </a>
+            <div class="nav__links hidden md:flex items-center gap-6">
+                <a href="marketplace.html" class="nav__link">Marketplace</a>
+                <a href="onboard.html" class="nav__link">For Sellers</a>
+                <a href="faq.html" class="nav__link">Help</a>
+            </div>
+            <div class="nav__actions flex items-center gap-4"></div>
+        </div>
+    </nav>
+
+    <!-- Loading skeleton -->
+    <div id="loading-state" class="container mt-8">
+        <div class="skeleton mb-4" style="height:20px;width:300px;"></div>
+        <div class="skeleton mb-6" style="height:40px;width:60%;"></div>
+        <div class="detail-layout">
+            <div class="detail-main">
+                <div class="skeleton mb-4" style="height:200px;"></div>
+                <div class="skeleton mb-4" style="height:300px;"></div>
+            </div>
+            <div class="detail-aside">
+                <div class="skeleton" style="height:400px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dataset content (hidden until loaded) -->
+    <div id="dataset-content" class="hidden container mt-8 mb-16">
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb text-sm text-secondary mb-4">
+            <a href="marketplace.html">Marketplace</a>
+            <span class="mx-2">›</span>
+            <span id="bc-category">Category</span>
+            <span class="mx-2">›</span>
+            <span id="bc-title" class="text-primary font-semibold">Dataset Title</span>
+        </div>
+
+        <div class="detail-layout">
+
+            <!-- ── MAIN COLUMN ── -->
+            <main class="detail-main">
+
+                <!-- Tags + Title -->
+                <div class="flex flex-wrap gap-2 mb-4" id="tag-row"></div>
+                <h1 class="font-bold mb-4" style="font-size:2rem;line-height:1.2" id="ds-title">Loading…</h1>
+
+                <!-- Encryption indicator -->
+                <div class="encrypt-indicator flex items-center gap-3 mb-6" style="background:#f0fdf4;border:1px solid #bbf7d0;padding:12px 16px;border-radius:10px;color:#059669;">
+                    <span style="font-size:1.5rem;">🔒</span>
+                    <div>
+                        <strong>End-to-End Encrypted</strong>
+                        <div class="text-sm">This dataset is protected with AES-256-GCM. You receive the decryption key only after winning and payment is confirmed.</div>
+                    </div>
+                </div>
+
+                <!-- Seller info -->
+                <div class="card card__body mb-6 flex items-center gap-4">
+                    <div style="font-size:2.5rem">🏢</div>
+                    <div>
+                        <div class="font-bold" id="seller-name">—</div>
+                        <div class="text-sm text-secondary" id="seller-industry">—</div>
+                    </div>
+                    <div id="seller-badge" class="ml-auto"></div>
+                </div>
+
+                <!-- Description -->
+                <div class="card card__body mb-6">
+                    <h3 class="font-bold mb-4">About This Dataset</h3>
+                    <p class="text-secondary" id="ds-description">—</p>
+                </div>
+
+                <!-- Specs -->
+                <div class="card card__body mb-6">
+                    <h3 class="font-bold mb-4">Dataset Specs</h3>
+                    <div class="spec-grid">
+                        <div class="spec-item">
+                            <div class="spec-label">Rows</div>
+                            <div class="spec-value" id="spec-rows">—</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Location</div>
+                            <div class="spec-value" id="spec-location">—</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Date Range</div>
+                            <div class="spec-value" id="spec-dates">—</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">Category</div>
+                            <div class="spec-value" id="spec-category">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data preview -->
+                <div class="card mb-6 overflow-hidden">
+                    <div style="background:var(--c-bg);padding:12px 20px;border-bottom:1px solid var(--c-border);display:flex;justify-content:space-between;align-items:center;">
+                        <span class="font-bold text-sm">Anonymized Data Preview</span>
+                        <span class="badge badge--neutral text-xs">🔒 Sample only — full file encrypted</span>
+                    </div>
+                    <div style="overflow-x:auto">
+                        <table class="data-preview-table">
+                            <thead id="preview-thead"></thead>
+                            <tbody id="preview-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Bid History -->
+                <div class="card card__body">
+                    <h3 class="font-bold mb-4">Bid History</h3>
+                    <div id="bid-history-container">
+                        <p class="text-secondary text-sm">No bids yet. Be the first!</p>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- ── SIDEBAR ── -->
+            <aside class="detail-aside">
+                <div class="bid-panel card card__body">
+
+                    <!-- Reserve status -->
+                    <div id="reserve-badge" class="badge mb-4" style="display:inline-flex"></div>
+
+                    <!-- Price -->
+                    <div class="text-xs text-secondary font-semibold mb-2">CURRENT TOP BID</div>
+                    <div class="bid-price mb-2">$<span id="current-bid-amount">—</span></div>
+                    <div class="text-sm text-secondary mb-4" id="bid-count-label">— bids</div>
+
+                    <!-- Countdown -->
+                    <div class="text-xs text-secondary font-semibold mb-2">AUCTION ENDS IN</div>
+                    <div class="bid-timer" id="countdown-timer">
+                        <div class="timer-block"><span class="timer-val" id="t-days">—</span><span class="timer-label">Days</span></div>
+                        <div class="timer-block"><span class="timer-val" id="t-hours">—</span><span class="timer-label">Hrs</span></div>
+                        <div class="timer-block"><span class="timer-val" id="t-mins">—</span><span class="timer-label">Min</span></div>
+                        <div class="timer-block"><span class="timer-val" id="t-secs">—</span><span class="timer-label">Sec</span></div>
+                    </div>
+
+                    <!-- Min bid hint -->
+                    <div class="text-xs text-secondary mb-4" id="min-bid-hint"></div>
+
+                    <!-- Bid input -->
+                    <div id="bid-form-area">
+                        <div class="bid-input-wrap mb-2">
+                            <span class="currency">$</span>
+                            <input type="number" id="bid-amount" class="input input--lg w-full" placeholder="Enter your bid" min="10" step="10">
+                        </div>
+                        <div class="text-xs text-secondary mb-4 hidden" id="fee-breakdown"></div>
+                        <button class="btn btn--accent btn--xl btn--full mb-3" id="place-bid-btn" onclick="openBidModal()">
+                            Place Bid →
+                        </button>
+                        <div class="text-xs text-secondary text-center">
+                            💳 Only charged if you win · Secured by Stripe
+                        </div>
+                    </div>
+
+                    <!-- Auction ended state -->
+                    <div id="auction-ended-area" class="hidden text-center py-4">
+                        <div class="text-3xl mb-2">⏱️</div>
+                        <div class="font-bold text-lg">Auction Ended</div>
+                        <div class="text-sm text-secondary mt-2">This auction has closed. <a href="marketplace.html" class="text-primary">Browse more datasets →</a></div>
+                    </div>
+
+                    <div class="divider my-4"></div>
+
+                    <!-- Payment methods -->
+                    <div class="text-center text-xs text-secondary mb-2">Accepted payments</div>
+                    <div class="flex items-center justify-center gap-2 text-xs">
+                        <span>💳 Visa</span>
+                        <span>·</span>
+                        <span>💳 Mastercard</span>
+                        <span>·</span>
+                        <span>🅿️ PayPal</span>
+                        <span>·</span>
+                        <span>🍎 Apple Pay</span>
+                    </div>
+                </div>
+            </aside>
+
+        </div>
+    </div>
+
+    <!-- 404 state -->
+    <div id="not-found-state" class="hidden section text-center container">
+        <div class="text-6xl mb-4">🔍</div>
+        <h1 class="font-bold mb-4">Dataset Not Found</h1>
+        <p class="text-secondary mb-8">This dataset may have been removed or the URL is incorrect.</p>
+        <a href="marketplace.html" class="btn btn--accent btn--lg">Browse Marketplace</a>
+    </div>
+
+    <!-- BID MODAL -->
+    <div class="modal-overlay" id="bid-modal">
+        <div class="modal" style="max-width:480px;width:100%;margin:20px;">
+            <button class="modal__close" onclick="DV.Modal.close('bid-modal')">✕</button>
+            <h2 class="font-bold mb-2">Confirm Your Bid</h2>
+            <p class="text-secondary text-sm mb-6">Your card is pre-authorized. <strong>You're only charged if your bid wins</strong> when the auction closes.</p>
+
+            <div class="card card--primary p-4 mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-secondary">Your bid:</span>
+                    <span class="font-bold text-lg">$<span id="modal-bid-amount">—</span></span>
+                </div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-secondary">Platform fee (5%):</span>
+                    <span class="font-bold">$<span id="modal-fee">—</span></span>
+                </div>
+                <div class="divider my-2"></div>
+                <div class="flex justify-between items-center">
+                    <span class="font-bold">Max you pay:</span>
+                    <span class="font-bold text-accent text-lg">$<span id="modal-total">—</span></span>
+                </div>
+            </div>
+
+            <div id="payment-element-container" class="mb-6">
+                <!-- Stripe Payment Element mounts here -->
+            </div>
+
+            <button class="btn btn--accent btn--xl btn--full" id="confirm-bid-btn" onclick="confirmBid()">
+                Authorize & Place Bid 🔒
+            </button>
+            <p class="text-xs text-secondary text-center mt-3">Powered by <strong style="color:#635BFF">Stripe</strong> · Military-grade security</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer section section--sm text-secondary">
+        <div class="container">
+            <div class="footer__grid grid grid-4 gap-8 mb-8">
+                <div>
+                    <a href="index.html" class="footer__logo font-bold text-lg text-primary mb-4 flex items-center gap-2">
+                        <span>🔐</span> DataVault
+                    </a>
+                    <p class="footer__tagline text-sm">Empowering small businesses to monetize their most valuable asset — their data.</p>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Platform</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="marketplace.html" class="footer__link">Marketplace</a></li>
+                        <li><a href="onboard.html" class="footer__link">For Sellers</a></li>
+                        <li><a href="pricing.html" class="footer__link">Pricing & Fees</a></li>
+                        <li><a href="index.html#how-it-works" class="footer__link">How It Works</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Company & Support</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="about.html" class="footer__link">About DataVault</a></li>
+                        <li><a href="faq.html" class="footer__link">Help Center</a></li>
+                        <li><a href="contact.html" class="footer__link">Contact Support</a></li>
+                        <li><a href="login.html" class="footer__link">Account Login</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Legal & Privacy</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="privacy.html" class="footer__link">Privacy Policy</a></li>
+                        <li><a href="terms.html" class="footer__link">Terms of Service</a></li>
+                        <li><a href="cookies.html" class="footer__link">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="divider mb-6"></div>
+            <div class="footer__bottom flex justify-between items-center text-xs">
+                <p>© 2026 DataVault Inc. All rights reserved. Encrypted & Verified Data Exchange.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+    <script src="js/bidding.js"></script>
+    <script src="js/payments.js"></script>
+    <script>
+    'use strict';
+
+    let currentDataset  = null;
+    let currentBids     = [];
+    let countdownTimer  = null;
+    let realtimeUnsub   = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        // auth.js already auto-inits Netlify Identity on DOMContentLoaded.
+        // Wait a tick so the session is restored before we check it.
+        await new Promise(r => setTimeout(r, 300));
+
+        const params     = new URLSearchParams(window.location.search);
+        const datasetId  = params.get('id');
+
+        if (!datasetId) {
+            showState('not-found');
+            return;
+        }
+
+        await loadDataset(datasetId);
+    });
+
+    /* ── Load Dataset ──────────────────────────────────────── */
+    async function loadDataset(id) {
+        const { data, error } = await DVSupabase.datasets.get(id);
+        if (error || !data) { showState('not-found'); return; }
+
+        currentDataset = data;
+        document.title = data.title + ' | DataVault';
+
+        renderDataset(data);
+        await loadBids(id);
+        startCountdown(data.auction_end);
+        subscribeToRealtime(id);
+
+        showState('content');
+    }
+
+    /* ── Render Dataset ─────────────────────────────────────── */
+    function renderDataset(ds) {
+        // Breadcrumb
+        document.getElementById('bc-category').textContent = ds.category || 'Dataset';
+        document.getElementById('bc-title').textContent    = ds.title;
+
+        // Tags — use ds.seller (stored at upload time) or fall back to ds fields
+        const sellerObj = ds.seller || {};
+        const tagRow = document.getElementById('tag-row');
+        tagRow.innerHTML = `
+            <span class="badge badge--primary">${ds.category || 'Data'}</span>
+            ${ds.location ? `<span class="badge badge--neutral">📍 ${ds.location}</span>` : ''}
+            ${sellerObj.verified ? '<span class="badge badge--success">✓ Verified Seller</span>' : ''}
+            ${ds.status === 'sold' ? '<span class="badge badge--accent">SOLD</span>' : ''}
+        `;
+
+        // Title & description
+        document.getElementById('ds-title').textContent       = ds.title;
+        document.getElementById('ds-description').textContent = ds.description || 'No description provided.';
+
+        // Seller — use ds.seller object (stored at dataset creation time)
+        document.getElementById('seller-name').textContent     = sellerObj.business_name || ds.seller_email || 'Anonymous Seller';
+        document.getElementById('seller-industry').textContent = sellerObj.industry || '';
+        document.getElementById('seller-badge').innerHTML      = sellerObj.verified
+            ? '<span class="badge badge--success">✓ Verified Seller</span>'
+            : '<span class="badge badge--neutral">Unverified</span>';
+
+        // Specs
+        document.getElementById('spec-rows').textContent     = ds.row_count ? ds.row_count.toLocaleString() + ' rows' : '—';
+        document.getElementById('spec-location').textContent = ds.location || '—';
+        document.getElementById('spec-category').textContent = ds.category || '—';
+        const dStart = ds.date_range_start ? new Date(ds.date_range_start).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : null;
+        const dEnd   = ds.date_range_end   ? new Date(ds.date_range_end).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : null;
+        document.getElementById('spec-dates').textContent = dStart && dEnd ? `${dStart} – ${dEnd}` : dStart || '—';
+
+        // Bid panel
+        updateBidPanel(ds);
+
+        // Data preview (demo rows based on category)
+        renderDataPreview(ds.category);
+    }
+
+    /* ── Bid Panel ──────────────────────────────────────────── */
+    function updateBidPanel(ds) {
+        const topBid    = ds.current_top_bid || ds.starting_bid || 0;
+        const bidCount  = ds.bid_count || 0;
+        const isEnded   = new Date(ds.auction_end) <= new Date() || ds.status === 'sold';
+        const reserveMet = topBid >= (ds.reserve_price || 0);
+
+        document.getElementById('current-bid-amount').textContent = topBid.toFixed(2);
+        document.getElementById('bid-count-label').textContent    = bidCount + (bidCount === 1 ? ' bid' : ' bids');
+
+        const resBadge = document.getElementById('reserve-badge');
+        if (reserveMet) {
+            resBadge.textContent  = '✓ Reserve Met';
+            resBadge.className    = 'badge badge--success mb-4';
+        } else {
+            resBadge.textContent  = 'Reserve Not Yet Met';
+            resBadge.className    = 'badge badge--neutral mb-4';
+        }
+
+        // Min next bid
+        const minBid = DVBidding.minNextBid(topBid);
+        document.getElementById('min-bid-hint').textContent = `Minimum next bid: $${minBid.toFixed(2)}`;
+
+        // Set input placeholder
+        const bidInput = document.getElementById('bid-amount');
+        if (bidInput) {
+            bidInput.placeholder = minBid.toFixed(2);
+            bidInput.min         = minBid;
+        }
+
+        // Show/hide bid form vs ended notice
+        document.getElementById('bid-form-area').classList.toggle('hidden', isEnded);
+        document.getElementById('auction-ended-area').classList.toggle('hidden', !isEnded);
+
+        // Wire fee breakdown
+        if (bidInput) {
+            bidInput.addEventListener('input', () => {
+                const val = parseFloat(bidInput.value);
+                const feeEl = document.getElementById('fee-breakdown');
+                if (!isNaN(val) && val > 0) {
+                    const fee = val * 0.05;
+                    feeEl.textContent = `Buyer pays $${val.toFixed(2)} · Seller receives $${(val - fee).toFixed(2)} after 5% fee`;
+                    feeEl.classList.remove('hidden');
+                } else {
+                    feeEl.classList.add('hidden');
+                }
+            });
+        }
+    }
+
+    /* ── Load Bids ──────────────────────────────────────────── */
+    async function loadBids(datasetId) {
+        const { data, error } = await DVSupabase.bids.getForDataset(datasetId);
+        if (!error && data) {
+            currentBids = data;
+            renderBidHistory(currentBids);
+        }
+    }
+
+    function renderBidHistory(bids) {
+        const container = document.getElementById('bid-history-container');
+        if (!bids?.length) {
+            container.innerHTML = '<p class="text-secondary text-sm">No bids yet. Be the first!</p>';
+            return;
+        }
+
+        const sorted = [...bids].sort((a, b) => b.amount - a.amount);
+        const rows   = sorted.map((bid, i) => {
+            const t   = new Date(bid.created_at);
+            const ago = timeAgo(t);
+            return `<tr class="bid-history-row">
+                <td>${anonymize(bid.buyer_id || bid.id, i)}${i === 0 ? ' <span class="badge badge--accent" style="font-size:0.6rem;margin-left:6px">TOP 🏆</span>' : ''}</td>
+                <td style="font-weight:700;color:var(--c-accent)">$${bid.amount.toFixed(2)}</td>
+                <td class="text-secondary text-sm">${ago}</td>
+            </tr>`;
+        }).join('');
+
+        container.innerHTML = `
+            <div class="table-wrap" style="overflow-x:auto">
+                <table style="width:100%;border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:var(--c-bg)">
+                            <th style="padding:10px 14px;text-align:left;font-weight:600;color:var(--c-text-secondary);border-bottom:2px solid var(--c-border)">Bidder</th>
+                            <th style="padding:10px 14px;text-align:left;font-weight:600;color:var(--c-text-secondary);border-bottom:2px solid var(--c-border)">Amount</th>
+                            <th style="padding:10px 14px;text-align:left;font-weight:600;color:var(--c-text-secondary);border-bottom:2px solid var(--c-border)">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    /* ── Countdown ──────────────────────────────────────────── */
+    function startCountdown(auctionEndISO) {
+        const endTime = new Date(auctionEndISO).getTime();
+
+        function tick() {
+            const now  = Date.now();
+            const diff = Math.max(0, endTime - now);
+            const days = Math.floor(diff / 86400000);
+            const hrs  = Math.floor((diff % 86400000) / 3600000);
+            const mins = Math.floor((diff % 3600000) / 60000);
+            const secs = Math.floor((diff % 60000) / 1000);
+
+            document.getElementById('t-days').textContent  = String(days).padStart(2,'0');
+            document.getElementById('t-hours').textContent = String(hrs).padStart(2,'0');
+            document.getElementById('t-mins').textContent  = String(mins).padStart(2,'0');
+            document.getElementById('t-secs').textContent  = String(secs).padStart(2,'0');
+
+            if (diff > 0) {
+                countdownTimer = setTimeout(tick, 1000);
+            } else {
+                document.getElementById('t-days').textContent  = '00';
+                document.getElementById('t-hours').textContent = '00';
+                document.getElementById('t-mins').textContent  = '00';
+                document.getElementById('t-secs').textContent  = '00';
+                document.getElementById('bid-form-area').classList.add('hidden');
+                document.getElementById('auction-ended-area').classList.remove('hidden');
+            }
+        }
+        tick();
+    }
+
+    /* ── Real-time ──────────────────────────────────────────── */
+    function subscribeToRealtime(datasetId) {
+        // Subscribe to new bids
+        realtimeUnsub = DVSupabase.bids.subscribeToDataset(datasetId, (newBid) => {
+            currentBids.unshift(newBid);
+            renderBidHistory(currentBids);
+            DV.Toast.success(`New bid: $${parseFloat(newBid.amount).toFixed(2)}!`);
+        });
+
+        // Subscribe to price updates
+        DVSupabase.bids.subscribeToDatasetPrice(datasetId, (updatedDs) => {
+            currentDataset = { ...currentDataset, ...updatedDs };
+            document.getElementById('current-bid-amount').textContent = parseFloat(updatedDs.current_top_bid).toFixed(2);
+            document.getElementById('bid-count-label').textContent    = updatedDs.bid_count + ' bids';
+        });
+    }
+
+    /* ── Bid Modal ──────────────────────────────────────────── */
+    function openBidModal() {
+        if (!DVAuthManager.isLoggedIn && !window.DV_CONFIG?.DEMO_MODE) {
+            DV.Toast.warning('Please sign in to place a bid.');
+            setTimeout(() => { window.location.href = 'login.html?returnTo=' + encodeURIComponent(window.location.href); }, 1200);
+            return;
+        }
+
+        const amount = parseFloat(document.getElementById('bid-amount').value);
+        const topBid = currentDataset?.current_top_bid || currentDataset?.starting_bid || 0;
+        const minBid = DVBidding.minNextBid(topBid);
+
+        if (isNaN(amount) || amount < minBid) {
+            DV.Toast.error(`Bid must be at least $${minBid.toFixed(2)}`);
+            document.getElementById('bid-amount').focus();
+            return;
+        }
+
+        const fee = amount * 0.05;
+        document.getElementById('modal-bid-amount').textContent = amount.toFixed(2);
+        document.getElementById('modal-fee').textContent        = fee.toFixed(2);
+        document.getElementById('modal-total').textContent      = amount.toFixed(2);
+
+        // Mount Stripe payment element
+        const isDemoMode = window.DV_CONFIG?.DEMO_MODE;
+        DVPayments.mountPaymentElement('payment-element-container', amount, {
+            datasetId: currentDataset?.id,
+            email:     DVAuthManager.user?.email || 'demo@example.com',
+        });
+
+        DV.Modal.open('bid-modal');
+    }
+
+    async function confirmBid() {
+        const amount    = parseFloat(document.getElementById('bid-amount').value);
+        const btn       = document.getElementById('confirm-bid-btn');
+        btn.disabled    = true;
+        btn.textContent = '⏳ Processing…';
+
+        try {
+            const isDemoMode = window.DV_CONFIG?.DEMO_MODE;
+            const user       = DVAuthManager.user || { id: 'demo-user', email: 'demo@example.com' };
+
+            let paymentIntentId = 'pi_demo_' + Date.now();
+
+            if (!isDemoMode) {
+                // Confirm the Stripe PaymentIntent (which was mounted in openBidModal)
+                // This authorizes (but does NOT charge) the card.
+                const returnUrl = window.location.href;
+                await DVPayments.confirmPayment(returnUrl);
+                // After confirmPayment, Stripe redirects back with payment_intent query param
+                // We capture the ID from the URL on return, or from the elements state.
+                const urlParams = new URLSearchParams(window.location.search);
+                paymentIntentId = urlParams.get('payment_intent') || paymentIntentId;
+            }
+
+            // Save bid with the PaymentIntent ID (used later to capture on auction win)
+            const { data: bid, error } = await DVSupabase.bids.place(
+                currentDataset.id,
+                amount,
+                paymentIntentId,
+            );
+
+            if (error) throw new Error(error);
+
+            DV.Modal.close('bid-modal');
+            DV.Toast.success('Bid placed successfully! 🎉 You\'ll be notified if you\'re outbid.');
+
+            // Update UI optimistically
+            currentDataset.current_top_bid = amount;
+            currentDataset.bid_count = (currentDataset.bid_count || 0) + 1;
+            updateBidPanel(currentDataset);
+
+            if (bid) {
+                currentBids.unshift(bid);
+                renderBidHistory(currentBids);
+            }
+
+        } catch (err) {
+            DV.Toast.error('Bid failed: ' + err.message);
+            btn.disabled    = false;
+            btn.textContent = 'Authorize & Place Bid 🔒';
+        }
+    }
+
+    /* ── Data Preview ───────────────────────────────────────── */
+    function renderDataPreview(category) {
+        const presets = {
+            'Retail Sales': {
+                cols: ['Date', 'Item', 'Category', 'Price', 'Qty'],
+                rows: [['2024-07-01', 'Sourdough Loaf', 'Bread', '$6.50', '42'],
+                       ['2024-07-01', 'Croissant', 'Pastry', '$3.75', '85'],
+                       ['2024-07-02', 'Blueberry Muffin', 'Pastry', '$4.00', '30']],
+            },
+            'Inventory': {
+                cols: ['SKU', 'Product', 'Category', 'Stock', 'Reorder Point'],
+                rows: [['SKU-001', 'Blue Denim Jacket', 'Outerwear', '14', '5'],
+                       ['SKU-002', 'White Tee S', 'Tops', '52', '10'],
+                       ['SKU-003', 'Black Jeans 32', 'Bottoms', '8', '5']],
+            },
+            'Foot Traffic': {
+                cols: ['Date', 'Hour', 'Visitors', 'Transactions', 'Avg Ticket'],
+                rows: [['2024-07-01', '12:00', '84', '31', '$18.40'],
+                       ['2024-07-01', '13:00', '112', '45', '$21.20'],
+                       ['2024-07-01', '19:00', '68', '29', '$24.80']],
+            },
+        };
+
+        const preview = presets[category] || {
+            cols: ['Date', 'Field A', 'Field B', 'Value', 'Notes'],
+            rows: [['2024-01-15', 'Sample A', 'Data B', '42.00', 'Anonymized'],
+                   ['2024-01-16', 'Sample C', 'Data D', '67.50', 'Anonymized'],
+                   ['2024-01-17', 'Sample E', 'Data F', '33.20', 'Anonymized']],
+        };
+
+        document.getElementById('preview-thead').innerHTML =
+            '<tr>' + preview.cols.map(c => `<th>${c}</th>`).join('') + '</tr>';
+
+        document.getElementById('preview-tbody').innerHTML =
+            preview.rows.map(row =>
+                '<tr>' + row.map(cell => `<td class="text-secondary">${cell}</td>`).join('') + '</tr>'
+            ).join('') +
+            `<tr><td colspan="${preview.cols.length}" style="text-align:center;padding:12px;color:var(--c-text-secondary);font-size:0.8rem;font-style:italic">… and many more rows (encrypted)</td></tr>`;
+    }
+
+    /* ── Helpers ─────────────────────────────────────────────── */
+    function showState(state) {
+        document.getElementById('loading-state').classList.toggle('hidden', state !== 'loading');
+        document.getElementById('dataset-content').classList.toggle('hidden', state !== 'content');
+        document.getElementById('not-found-state').classList.toggle('hidden', state !== 'not-found');
+    }
+
+    function anonymize(id, idx) {
+        const nums = ['4821','7132','9054','3317','6628','1194','8841'];
+        return 'Buyer #' + (nums[idx % nums.length]);
+    }
+
+    function timeAgo(date) {
+        const diff  = Date.now() - date.getTime();
+        const mins  = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days  = Math.floor(diff / 86400000);
+        if (days  > 0) return days  + 'd ago';
+        if (hours > 0) return hours + 'h ago';
+        if (mins  > 0) return mins  + 'm ago';
+        return 'Just now';
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataVault | Sell Your Business Data</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script><script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav__inner container flex justify-between items-center">
+            <a href="index.html" class="nav__logo font-bold text-lg flex items-center gap-4">
+                <span class="nav__logo-icon">🔐</span> DataVault
+            </a>
+            <div class="nav__links hidden md:flex items-center gap-6">
+                <a href="marketplace.html" class="nav__link">Marketplace</a>
+                <a href="onboard.html" class="nav__link">For Sellers</a>
+                <a href="#how-it-works" class="nav__link">How It Works</a>
+                <a href="faq.html" class="nav__link">Help</a>
+            </div>
+            <div class="nav__actions flex items-center gap-4">
+                <a href="marketplace.html" class="btn btn--outline btn--sm">Browse Data</a>
+                <a href="onboard.html" class="btn btn--accent btn--sm">Start Selling</a>
+                <button class="nav__hamburger md:hidden">🍔</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero section section--lg text-center animate-fade-up">
+        <div class="container container--narrow">
+            <div class="hero__eyebrow badge badge--success mb-6">🔒 Encrypted · Verified · Trusted</div>
+            <h1 class="hero__title font-bold mb-6">Your business data has value. <span class="highlight text-accent">Let buyers compete for it.</span></h1>
+            <p class="hero__sub text-lg text-secondary mb-8">DataVault lets small businesses upload any data, set a secret minimum price, and watch buyers bid — all protected by military-grade encryption. No tech skills needed.</p>
+            
+            <div class="hero__ctas flex justify-center items-center gap-4 mb-8">
+                <a href="onboard.html" class="btn btn--accent btn--xl">Start Selling My Data →</a>
+                <a href="marketplace.html" class="btn btn--outline btn--lg">Browse Datasets</a>
+            </div>
+            
+            <div class="hero__trust flex justify-center gap-6 text-sm text-secondary font-semibold">
+                <span class="hero__trust-item">✓ No password needed</span>
+                <span class="hero__trust-item">✓ Any file type</span>
+                <span class="hero__trust-item">✓ 5 minutes to go live</span>
+            </div>
+        </div>
+
+        <!-- Floating Mock UI Card -->
+        <div class="container mt-8 flex justify-center">
+            <div class="dataset-card card card--accent animate-fade-up delay-200" style="max-width: 300px; text-align: left;">
+                <div class="dataset-card__stripe"></div>
+                <div class="dataset-card__body">
+                    <div class="dataset-card__tags mb-4">
+                        <span class="badge badge--primary">Retail</span>
+                        <span class="badge badge--success">Verified</span>
+                    </div>
+                    <h3 class="dataset-card__title font-bold mb-4">Downtown Cafe Sales 2023-2024</h3>
+                    <div class="bid-panel">
+                        <div class="bid-panel__label text-xs text-secondary">Current Top Bid</div>
+                        <div class="bid-panel__price text-accent font-bold text-lg mb-4">$<span id="live-bid">350</span></div>
+                        <div class="bid-panel__timer flex gap-4">
+                            <div class="bid-panel__time-block text-center">
+                                <div class="bid-panel__time-val font-bold">02</div>
+                                <div class="bid-panel__time-label text-xs">HRS</div>
+                            </div>
+                            <div class="bid-panel__time-block text-center">
+                                <div class="bid-panel__time-val font-bold">14</div>
+                                <div class="bid-panel__time-label text-xs">MIN</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Stats Bar -->
+    <section class="section section--sm card--primary text-center">
+        <div class="container grid grid-4 gap-6">
+            <div class="stat-card">
+                <div class="stat-card__value font-bold text-lg text-primary" id="stat-datasets">—</div>
+                <div class="stat-card__label text-sm font-semibold">Datasets Listed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card__value font-bold text-lg text-primary" id="stat-paid">—</div>
+                <div class="stat-card__label text-sm font-semibold">Paid to Sellers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card__value font-bold text-lg text-primary" id="stat-buyers">—</div>
+                <div class="stat-card__label text-sm font-semibold">Buyers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card__value font-bold text-lg text-primary" id="stat-satisfaction">—</div>
+                <div class="stat-card__label text-sm font-semibold">Satisfaction</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- For Sellers -->
+    <section id="how-it-works" class="section animate-fade-up scroll-trigger">
+        <div class="container">
+            <div class="text-center mb-8">
+                <div class="section-label badge badge--accent mb-4">FOR SELLERS</div>
+                <h2 class="section-title font-bold">Go from zero to earning in 5 minutes</h2>
+            </div>
+            <div class="grid grid-3 gap-6">
+                <div class="how-step card card__body text-center">
+                    <div class="how-step__icon text-lg mb-4">📤</div>
+                    <h3 class="how-step__title font-bold mb-4">Upload</h3>
+                    <p class="how-step__body text-sm text-secondary">Drop any file — spreadsheet, PDF, photo of a ledger. We organize it automatically.</p>
+                </div>
+                <div class="how-step card card__body text-center">
+                    <div class="how-step__icon text-lg mb-4">🏷️</div>
+                    <h3 class="how-step__title font-bold mb-4">Price</h3>
+                    <p class="how-step__body text-sm text-secondary">Set a starting bid and your secret minimum price. You control everything.</p>
+                </div>
+                <div class="how-step card card__body text-center">
+                    <div class="how-step__icon text-lg mb-4">💰</div>
+                    <h3 class="how-step__title font-bold mb-4">Earn</h3>
+                    <p class="how-step__body text-sm text-secondary">Buyers compete. You get paid. Direct to your bank or PayPal.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- For Buyers -->
+    <section class="section card--accent animate-fade-up scroll-trigger">
+        <div class="container">
+            <div class="text-center mb-8">
+                <div class="section-label badge badge--primary mb-4">FOR BUYERS</div>
+                <h2 class="section-title font-bold">Find real data from real local businesses</h2>
+            </div>
+            <div class="grid grid-3 gap-6">
+                <div class="how-step card card__body text-center bg-white">
+                    <div class="how-step__icon text-lg mb-4">🔍</div>
+                    <h3 class="how-step__title font-bold mb-4">Browse</h3>
+                    <p class="how-step__body text-sm text-secondary">Search thousands of verified small business datasets by industry and location.</p>
+                </div>
+                <div class="how-step card card__body text-center bg-white">
+                    <div class="how-step__icon text-lg mb-4">💸</div>
+                    <h3 class="how-step__title font-bold mb-4">Bid</h3>
+                    <p class="how-step__body text-sm text-secondary">Place competitive bids. You're only charged if you win.</p>
+                </div>
+                <div class="how-step card card__body text-center bg-white">
+                    <div class="how-step__icon text-lg mb-4">🔑</div>
+                    <h3 class="how-step__title font-bold mb-4">Access</h3>
+                    <p class="how-step__body text-sm text-secondary">Download your encrypted dataset instantly. Decryption key delivered to your email.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust/Security -->
+    <section class="section animate-fade-up scroll-trigger">
+        <div class="container">
+            <div class="card card__body--lg card--primary text-center">
+                <h2 class="section-title font-bold mb-8">Bank-grade Security</h2>
+                <div class="grid grid-3 gap-6">
+                    <div>
+                        <div class="text-lg mb-4">🔒</div>
+                        <h3 class="font-bold mb-4">AES-256 Encryption</h3>
+                        <p class="text-sm text-secondary">Your files are encrypted before they ever leave your device. We never see your raw data.</p>
+                    </div>
+                    <div>
+                        <div class="text-lg mb-4">✅</div>
+                        <h3 class="font-bold mb-4">Verified Sellers</h3>
+                        <p class="text-sm text-secondary">Every seller submits a business document. We verify before their data goes live.</p>
+                    </div>
+                    <div>
+                        <div class="text-lg mb-4">💳</div>
+                        <h3 class="font-bold mb-4">Secure Payments</h3>
+                        <p class="text-sm text-secondary">Stripe-powered payments. Credit cards, PayPal, Apple Pay, Google Pay. Your card is only charged if you win.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories -->
+    <section class="section animate-fade-up scroll-trigger">
+        <div class="container text-center">
+            <h2 class="section-title font-bold mb-8">What kind of data are you looking for?</h2>
+            <div class="grid grid-4 gap-4">
+                <a href="marketplace.html" class="card card__body font-semibold flex flex-col items-center gap-4 hover:shadow">
+                    <span class="text-lg">🛒</span> Retail Sales
+                </a>
+                <a href="marketplace.html" class="card card__body font-semibold flex flex-col items-center gap-4 hover:shadow">
+                    <span class="text-lg">📦</span> Inventory
+                </a>
+                <a href="marketplace.html" class="card card__body font-semibold flex flex-col items-center gap-4 hover:shadow">
+                    <span class="text-lg">👣</span> Foot Traffic
+                </a>
+                <a href="marketplace.html" class="card card__body font-semibold flex flex-col items-center gap-4 hover:shadow">
+                    <span class="text-lg">🏷️</span> Local Pricing
+                </a>
+                <a href="marketplace.html" class="card card__body font-semibold flex flex-col items-center gap-4 hover:shadow">
+                    <span class="text-lg">👥</span> Customer Demographics
+                </a>
+                <a href="marketplace.html" class="card card__body font-semibold flex flex-col items-center gap-4 hover:shadow">
+                    <span class="text-lg">🍽️</span> Restaurant Orders
+                </a>
+                <a href="marketplace.html" class="card card__body font-semibold flex flex-col items-center gap-4 hover:shadow">
+                    <span class="text-lg">🔧</span> Services
+                </a>
+                <a href="marketplace.html" class="card card__body font-semibold flex flex-col items-center gap-4 hover:shadow">
+                    <span class="text-lg">📊</span> Other
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="section card--accent animate-fade-up scroll-trigger">
+        <div class="container">
+            <h2 class="section-title font-bold text-center mb-8">Trusted by businesses & buyers</h2>
+            <div class="grid grid-3 gap-6">
+                <div class="card card__body">
+                    <p class="text-sm mb-6 text-secondary">"I uploaded my 3 years of sales data and had 6 buyers competing within 2 days. Made $1,200 I wasn't expecting."</p>
+                    <div class="font-bold text-primary">Rosa Martinez</div>
+                    <div class="text-xs text-secondary">Bakery Owner, Austin TX</div>
+                </div>
+                <div class="card card__body">
+                    <p class="text-sm mb-6 text-secondary">"The data quality from local businesses is incredible. Much more useful than synthetic datasets. Worth every penny."</p>
+                    <div class="font-bold text-primary">James Okafor</div>
+                    <div class="text-xs text-secondary">AI Researcher</div>
+                </div>
+                <div class="card card__body">
+                    <p class="text-sm mb-6 text-secondary">"I was nervous about the tech stuff but it was honestly easier than sending an email. Zero complaints."</p>
+                    <div class="font-bold text-primary">Linda Chen</div>
+                    <div class="text-xs text-secondary">Boutique Owner</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="section section--lg text-center animate-fade-up scroll-trigger">
+        <div class="container container--narrow">
+            <h2 class="section-title font-bold mb-4">Ready to turn your data into income?</h2>
+            <p class="section-sub text-lg text-secondary mb-8">It takes 5 minutes.</p>
+            <a href="onboard.html" class="btn btn--accent btn--xl">Start Selling Today →</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer section section--sm text-secondary">
+        <div class="container">
+            <div class="footer__grid grid grid-4 gap-8 mb-8">
+                <div>
+                    <a href="index.html" class="footer__logo font-bold text-lg text-primary mb-4 flex items-center gap-2">
+                        <span>🔐</span> DataVault
+                    </a>
+                    <p class="footer__tagline text-sm">Empowering small businesses to monetize their most valuable asset — their data.</p>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Platform</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="marketplace.html" class="footer__link">Marketplace</a></li>
+                        <li><a href="onboard.html" class="footer__link">For Sellers</a></li>
+                        <li><a href="pricing.html" class="footer__link">Pricing & Fees</a></li>
+                        <li><a href="index.html#how-it-works" class="footer__link">How It Works</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Company & Support</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="about.html" class="footer__link">About DataVault</a></li>
+                        <li><a href="faq.html" class="footer__link">Help Center</a></li>
+                        <li><a href="contact.html" class="footer__link">Contact Support</a></li>
+                        <li><a href="login.html" class="footer__link">Account Login</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Legal & Privacy</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="privacy.html" class="footer__link">Privacy Policy</a></li>
+                        <li><a href="terms.html" class="footer__link">Terms of Service</a></li>
+                        <li><a href="cookies.html" class="footer__link">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="divider mb-6"></div>
+            <div class="footer__bottom flex justify-between items-center text-xs">
+                <p>© 2026 DataVault Inc. All rights reserved. Encrypted & Verified Data Exchange.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/app.js" defer></script>
+    <script>
+        // ── Load real platform stats ────────────────────────────────
+        async function loadPlatformStats() {
+            const { data: stats } = await DVSupabase.datasets.getPlatformStats();
+            if (!stats) return;
+
+            const totalDs   = stats.total_datasets  || 0;
+            const totalPaid = stats.total_paid_out  || 0;
+            const totalBuyers = stats.total_buyers  || 0;
+
+            // Animate counters
+            const dsEl  = document.getElementById('stat-datasets');
+            const pdEl  = document.getElementById('stat-paid');
+            const byEl  = document.getElementById('stat-buyers');
+            const sfEl  = document.getElementById('stat-satisfaction');
+
+            if (dsEl)  animateStat(dsEl,  totalDs,    '',  '+');
+            if (pdEl)  animateStat(pdEl,  totalPaid,  '$', '+', true);
+            if (byEl)  animateStat(byEl,  totalBuyers,'',  '+');
+            if (sfEl)  sfEl.textContent = (stats.satisfaction_pct || 98.4).toFixed(1) + '%';
+        }
+
+        function animateStat(el, value, prefix, suffix, isMoney) {
+            const duration = 1500;
+            const start    = performance.now();
+            const tick = (now) => {
+                const p  = Math.min((now - start) / duration, 1);
+                const e  = 1 - Math.pow(1 - p, 3); // ease-out cubic
+                const v  = Math.floor(value * e);
+                el.textContent = prefix + (isMoney ? formatMoney(v) : v.toLocaleString()) + suffix;
+                if (p < 1) requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+        }
+
+        function formatMoney(n) {
+            if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+            if (n >= 1000)    return (n / 1000).toFixed(0) + 'K';
+            return n.toLocaleString();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPlatformStats();
+
+            // Animated bid counter
+            const bidElement = document.getElementById('live-bid');
+            let currentBid = 350;
+            
+            setInterval(() => {
+                if(Math.random() > 0.6) {
+                    currentBid += Math.floor(Math.random() * 20) + 10;
+                    bidElement.textContent = currentBid;
+                    bidElement.parentElement.classList.remove('text-accent');
+                    bidElement.parentElement.classList.add('text-primary');
+                    setTimeout(() => {
+                        bidElement.parentElement.classList.remove('text-primary');
+                        bidElement.parentElement.classList.add('text-accent');
+                    }, 300);
+                }
+            }, 3000);
+
+            // Scroll animations
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-fade-up');
+                        entry.target.classList.remove('opacity-0');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.scroll-trigger').forEach(el => {
+                el.classList.add('opacity-0');
+                observer.observe(el);
+            });
+            
+            // Mobile Menu
+            const hamburger = document.querySelector('.nav__hamburger');
+            const navLinks = document.querySelector('.nav__links');
+            if(hamburger && navLinks) {
+                hamburger.addEventListener('click', () => {
+                    navLinks.classList.toggle('hidden');
+                    navLinks.classList.toggle('flex');
+                    navLinks.classList.toggle('flex-col');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

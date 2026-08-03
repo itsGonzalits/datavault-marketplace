@@ -1,0 +1,18 @@
+# Environment variables & secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# Node modules / dependencies
+node_modules/
+
+# Logs
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Local Netlify folder
+.netlify

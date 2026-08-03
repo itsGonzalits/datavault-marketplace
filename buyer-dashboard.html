@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buyer Dashboard | DataVault</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script><script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --surface-color: #1a1f33;
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --danger: #ef4444;
+            --success: #10b981;
+            --card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 3rem;
+            background: rgba(26, 31, 51, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .navbar .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .user-nav {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .btn-action {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+        .btn-action:hover { background: rgba(255,255,255,0.2); }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .header { margin-bottom: 2rem; }
+        .header h1 { font-size: 2.2rem; margin: 0 0 0.5rem 0; }
+        
+        .section-box {
+            background: var(--surface-color);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+        }
+        .section-box h2 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+        
+        .bid-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+        .bid-card:hover { transform: translateX(5px); border-color: rgba(255,255,255,0.1); }
+        
+        .bid-info h3 { margin: 0 0 0.5rem 0; font-size: 1.2rem; }
+        .bid-meta { color: var(--text-muted); font-size: 0.9rem; }
+        
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+        }
+        .badge-winning { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-outbid { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-won { background: rgba(59, 130, 246, 0.15); color: var(--primary); border: 1px solid rgba(59, 130, 246, 0.3); }
+        
+        .bid-actions { text-align: right; }
+        .bid-amount { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; display: block; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { color: var(--text-muted); font-weight: 500; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em; }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">DataVault Buyer</div>
+    <div class="user-nav">
+        <span id="user-display">Buyer Dashboard</span>
+        <button onclick="DVAuthManager.signOut()" class="btn-action">Sign Out</button>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="header">
+        <h1>Buyer Dashboard</h1>
+        <p style="color: var(--text-muted);">Track your bids and download purchased datasets.</p>
+    </div>
+
+    <!-- Active Bids -->
+    <div class="section-box">
+        <h2>Active Bids</h2>
+        <div id="active-bids-container">
+            <p style="color: var(--text-muted);">Loading active bids...</p>
+        </div>
+    </div>
+
+    <!-- Won Datasets -->
+    <div class="section-box">
+        <h2>Won Datasets (Purchased)</h2>
+        <div id="won-datasets-container">
+            <p style="color: var(--text-muted);">Loading purchases...</p>
+        </div>
+    </div>
+
+    <!-- Bid History -->
+    <div class="section-box">
+        <h2>Bid History</h2>
+        <table id="bid-history-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Dataset</th>
+                    <th>Your Bid</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Populated via JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer section section--sm text-secondary mt-16">
+        <div class="container">
+            <div class="footer__grid grid grid-4 gap-8 mb-8">
+                <div>
+                    <a href="index.html" class="footer__logo font-bold text-lg text-primary mb-4 flex items-center gap-2">
+                        <span>🔐</span> DataVault
+                    </a>
+                    <p class="footer__tagline text-sm">Empowering small businesses to monetize their most valuable asset — their data.</p>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Platform</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="marketplace.html" class="footer__link">Marketplace</a></li>
+                        <li><a href="onboard.html" class="footer__link">For Sellers</a></li>
+                        <li><a href="pricing.html" class="footer__link">Pricing & Fees</a></li>
+                        <li><a href="index.html#how-it-works" class="footer__link">How It Works</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Company & Support</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="about.html" class="footer__link">About DataVault</a></li>
+                        <li><a href="faq.html" class="footer__link">Help Center</a></li>
+                        <li><a href="contact.html" class="footer__link">Contact Support</a></li>
+                        <li><a href="login.html" class="footer__link">Account Login</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Legal & Privacy</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="privacy.html" class="footer__link">Privacy Policy</a></li>
+                        <li><a href="terms.html" class="footer__link">Terms of Service</a></li>
+                        <li><a href="cookies.html" class="footer__link">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="divider mb-6"></div>
+            <div class="footer__bottom flex justify-between items-center text-xs">
+                <p>© 2026 DataVault Inc. All rights reserved. Encrypted & Verified Data Exchange.</p>
+            </div>
+        </div>
+    </footer>
+
+<script src="js/app.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+    // Auth Guard — wait for Netlify Identity to restore session
+    await new Promise(r => setTimeout(r, 400));
+
+    let user = DVAuthManager.user;
+
+    // Demo Mode handling (append ?demo to URL)
+    if (!user && window.location.search.includes('demo')) {
+        DVAuthManager.enableDemoUser('buyer');
+        user = DVAuthManager.user;
+    }
+
+    if (!user) {
+        window.location.href = 'login.html?returnTo=' + encodeURIComponent(window.location.href);
+        return;
+    }
+
+    let userId = user.id;
+    let activeBids  = [];
+    let wonDatasets = [];
+    let bidHistory  = [];
+
+    async function loadData() {
+        try {
+            const [bidsRes, transactionsRes] = await Promise.all([
+                DVSupabase.bids.getByBuyer(),
+                DVSupabase.transactions.getByBuyer(),
+            ]);
+            activeBids  = (bidsRes.data || []).filter(b => b.status === 'active');
+            wonDatasets = transactionsRes.data || [];
+            bidHistory  = bidsRes.data || [];
+        } catch (err) {
+            console.warn('[buyer-dashboard] API error, using fallback data:', err.message);
+            // Fallback demo data
+            activeBids = [
+                { id: 'b1', dataset_id: 'd1', amount: 500, status: 'active', created_at: new Date().toISOString(), dataset_title: 'Q2 User Telemetry',    current_top_bid: 600, auction_end: new Date(Date.now() + 86400000).toISOString() },
+                { id: 'b2', dataset_id: 'd2', amount: 300, status: 'active', created_at: new Date().toISOString(), dataset_title: 'Marketing Analytics',   current_top_bid: 300, auction_end: new Date(Date.now() + 3600000).toISOString() }
+            ];
+            wonDatasets = [{ id: 't1', created_at: new Date().toISOString(), amount: 450, dataset_title: 'Healthcare Stats 2023', encryption_key: 'DEMO-KEY-12345', file_path: null }];
+            bidHistory  = [...activeBids, { id: 'b3', dataset_title: 'Healthcare Stats 2023', amount: 450, created_at: new Date(Date.now() - 86400000).toISOString(), status: 'won' }];
+        }
+
+        renderActiveBids();
+        renderWonDatasets();
+        renderBidHistory();
+        setupRealtimeSubscriptions();
+    }
+
+    function renderActiveBids() {
+        const container = document.getElementById('active-bids-container');
+        container.innerHTML = '';
+        
+        if(!activeBids || activeBids.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted);">You have no active bids right now.</p>';
+            return;
+        }
+
+        activeBids.forEach(bid => {
+            // Support both nested-object (demo) and flat (API) bid shapes
+            const dsTitle      = bid.dataset_title || bid.datasets?.title || 'Unknown Dataset';
+            const topBid       = bid.current_top_bid ?? bid.datasets?.current_top_bid ?? bid.amount;
+            const auctionEnd   = bid.auction_end || bid.datasets?.auction_end || bid.datasets?.end_time;
+            const isWinning    = bid.amount >= topBid;
+
+            // Time left calc
+            let timeLeft = 'Ending soon';
+            const ms = auctionEnd ? new Date(auctionEnd) - new Date() : -1;
+            if(ms > 0) {
+                const hrs  = Math.floor(ms / (1000 * 60 * 60));
+                const mins = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+                timeLeft = `${hrs}h ${mins}m left`;
+            } else {
+                timeLeft = 'Ended';
+            }
+
+            const card = document.createElement('div');
+            card.className = 'bid-card';
+            card.id = `bid-card-${bid.dataset_id}`;
+            card.innerHTML = `
+                <div class="bid-info">
+                    ${isWinning 
+                        ? `<span class="status-badge badge-winning" id="badge-${bid.dataset_id}">You're Winning! 🏆</span>` 
+                        : `<span class="status-badge badge-outbid" id="badge-${bid.dataset_id}">Outbid! Current: $${topBid}</span>`
+                    }
+                    <h3>${dsTitle}</h3>
+                    <div class="bid-meta">Ends in: ${timeLeft}</div>
+                </div>
+                <div class="bid-actions">
+                    <span class="bid-amount">Your Bid: $${bid.amount}</span>
+                    <a href="dataset.html?id=${bid.dataset_id}" class="btn-action btn-primary">Increase Bid</a>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function renderWonDatasets() {
+        const container = document.getElementById('won-datasets-container');
+        container.innerHTML = '';
+        
+        if(!wonDatasets || wonDatasets.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted);">No purchased datasets yet.</p>';
+            return;
+        }
+
+        wonDatasets.forEach(tx => {
+            const card = document.createElement('div');
+            card.className = 'bid-card';
+            card.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+            card.innerHTML = `
+                <div class="bid-info">
+                    <span class="status-badge badge-won">Purchased ✓</span>
+                    <h3>${tx.dataset_title || 'Dataset'}</h3>
+                    <div class="bid-meta">Won on: ${new Date(tx.created_at).toLocaleDateString()} &bull; Price: $${tx.amount}</div>
+                </div>
+                <div class="bid-actions">
+                    <button onclick="downloadDataset('${tx.id}')" class="btn-action btn-primary" style="margin-bottom: 0.5rem; display: block; width: 100%;">Download Dataset</button>
+                    <button onclick="showKey('${tx.encryption_key}')" class="btn-action">Get Decryption Key</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function renderBidHistory() {
+        const tbody = document.querySelector('#bid-history-table tbody');
+        tbody.innerHTML = '';
+        if(!bidHistory || bidHistory.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4">No bid history.</td></tr>';
+            return;
+        }
+
+        bidHistory.forEach(b => {
+            const title = b.dataset_title || b.datasets?.title || 'Unknown Dataset';
+            let status  = b.status || 'active';
+            if (status === 'won')     status = 'Won';
+            else if (status === 'active') status = 'Active';
+            else if (status === 'outbid') status = 'Outbid';
+            else if (status === 'cancelled') status = 'Cancelled';
+            
+            let color = status === 'Active' ? 'var(--success)' : (status === 'Outbid' ? 'var(--danger)' : status === 'Won' ? 'var(--primary)' : 'var(--text-muted)');
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${new Date(b.created_at).toLocaleDateString()}</td>
+                <td><strong>${title}</strong></td>
+                <td>$${b.amount}</td>
+                <td style="color: ${color}; font-weight: 600;">${status}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    window.downloadDataset = function(txId) {
+        const tx = wonDatasets.find(t => t.id === txId);
+        if (!tx) { alert('Transaction not found.'); return; }
+
+        if (tx.file_path) {
+            // Build a download token for the buyer (48h expiry)
+            const payload      = JSON.stringify({ key: tx.file_path, exp: Date.now() + 48 * 3600 * 1000, uid: user.email || userId });
+            const token        = btoa(payload).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+            const downloadUrl  = `/.netlify/functions/download?token=${token}`;
+            window.open(downloadUrl, '_blank');
+        } else {
+            alert('Download not available yet. The seller may still be processing your purchase.');
+        }
+    };
+
+    window.showKey = function(key) {
+        alert("Decryption Key: " + (key || "DEMO-KEY-XXX") + "\nUse this to decrypt the downloaded file.");
+    };
+
+    function setupRealtimeSubscriptions() {
+        if(window.DVSupabase && window.DVSupabase.bids && activeBids.length > 0) {
+            const datasetIds = [...new Set(activeBids.map(b => b.dataset_id))];
+            datasetIds.forEach(dsId => {
+                DVSupabase.bids.subscribeToDatasetPrice(dsId, (updatedDs) => {
+                    const newTopBid = updatedDs.current_top_bid;
+                    updateBidStatusUI(dsId, newTopBid);
+                });
+            });
+        }
+    }
+
+    function updateBidStatusUI(datasetId, newTopBid) {
+        // Find user's bid for this dataset
+        const userBid = activeBids.find(b => b.dataset_id === datasetId);
+        if(!userBid) return;
+
+        const badge = document.getElementById(`badge-${datasetId}`);
+        if(badge) {
+            if(userBid.amount >= newTopBid) {
+                badge.className = 'status-badge badge-winning';
+                badge.innerText = "You're Winning! 🏆";
+            } else {
+                badge.className = 'status-badge badge-outbid';
+                badge.innerText = `Outbid! Current: $${newTopBid}`;
+            }
+        }
+    }
+
+    // Init
+    loadData();
+});
+</script>
+
+</body>
+</html>

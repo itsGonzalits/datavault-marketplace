@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Onboarding - DataVault</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script><script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <style>
+        /* Minimal custom styles for confetti that are not in main.css */
+        .confetti-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .confetti {
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            position: absolute;
+            animation: confetti-fall 3s ease-in-out infinite;
+            border-radius: 50%;
+        }
+        .confetti:nth-child(1) { left: 10%; background-color: #0D9488; animation-delay: 0s; }
+        .confetti:nth-child(2) { left: 30%; background-color: #F97316; animation-delay: 0.2s; }
+        .confetti:nth-child(3) { left: 50%; background-color: #3b82f6; animation-delay: 0.4s; }
+        .confetti:nth-child(4) { left: 70%; background-color: #eab308; animation-delay: 0.1s; }
+        .confetti:nth-child(5) { left: 90%; background-color: #a855f7; animation-delay: 0.3s; }
+        .confetti:nth-child(6) { left: 20%; background-color: #ef4444; animation-delay: 0.5s; }
+        .confetti:nth-child(7) { left: 40%; background-color: #10b981; animation-delay: 0.2s; }
+        .confetti:nth-child(8) { left: 60%; background-color: #f97316; animation-delay: 0.6s; }
+        .confetti:nth-child(9) { left: 80%; background-color: #0ea5e9; animation-delay: 0.1s; }
+        @keyframes confetti-fall {
+            0% { transform: translateY(100px) scale(0); opacity: 1; }
+            50% { transform: translateY(-50px) scale(1.5); opacity: 1; }
+            100% { transform: translateY(-150px) scale(0); opacity: 0; }
+        }
+        .shake { animation: shake 0.5s; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="nav">
+        <div class="nav__inner container">
+            <a href="index.html" class="nav__logo">
+                <span class="nav__logo-icon">🔐</span> DataVault
+            </a>
+            <div class="nav__hamburger">☰</div>
+            <nav class="nav__links">
+                <a href="marketplace.html" class="nav__link">Marketplace</a>
+                <a href="onboard.html" class="nav__link nav__link--active">For Sellers</a>
+                <a href="index.html#how-it-works" class="nav__link">How It Works</a>
+                <a href="faq.html" class="nav__link">Help</a>
+            </nav>
+            <div class="nav__actions flex items-center gap-4">
+                <a href="marketplace.html" class="btn btn--outline btn--sm">Browse Data</a>
+                <button class="btn btn--outline btn--sm" onclick="DVAuthManager.openLogin()">Log In</button>
+                <button class="btn btn--accent btn--sm" onclick="DVAuthManager.openSignup()">Start Selling</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="section container container--narrow mt-8 mb-8 animate-fade-up">
+        
+        <div class="progress-steps mb-8">
+            <div class="step step--active" id="step-indicator-1">
+                <div class="step__wrap">
+                    <div class="step__bubble">1</div>
+                    <div class="step__label">Info</div>
+                </div>
+                <div class="step__connector"></div>
+            </div>
+            <div class="step" id="step-indicator-2">
+                <div class="step__wrap">
+                    <div class="step__bubble">2</div>
+                    <div class="step__label">Verify</div>
+                </div>
+                <div class="step__connector"></div>
+            </div>
+            <div class="step" id="step-indicator-3">
+                <div class="step__wrap">
+                    <div class="step__bubble">3</div>
+                    <div class="step__label">Payout</div>
+                </div>
+                <div class="step__connector"></div>
+            </div>
+            <div class="step" id="step-indicator-4">
+                <div class="step__wrap">
+                    <div class="step__bubble">4</div>
+                    <div class="step__label">Done</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 1: Business Info -->
+        <div id="step-1" class="card card__body card__body--lg">
+            <h2 class="section-title mb-2">Tell us about your business 🏢</h2>
+            <p class="text-secondary mb-6">Let's get your seller profile set up.</p>
+            
+            <div class="form-group mb-4">
+                <label class="form-label" for="business-name">Business Name</label>
+                <input type="text" id="business-name" class="input input--lg" placeholder="e.g. Rosa's Bakery">
+                <div class="form-error hidden" id="error-business-name">Please enter your business name.</div>
+            </div>
+            
+            <div class="form-group mb-4">
+                <label class="form-label" for="industry">Industry</label>
+                <select id="industry" class="input input--lg">
+                    <option value="">Select your industry...</option>
+                    <option value="Retail">Retail</option>
+                    <option value="Restaurant">Restaurant</option>
+                    <option value="Bakery">Bakery</option>
+                    <option value="Coffee Shop">Coffee Shop</option>
+                    <option value="Boutique">Boutique</option>
+                    <option value="Hair Salon">Hair Salon</option>
+                    <option value="Auto Repair">Auto Repair</option>
+                    <option value="Gym">Gym</option>
+                    <option value="Florist">Florist</option>
+                    <option value="Hardware Store">Hardware Store</option>
+                    <option value="Pet Shop">Pet Shop</option>
+                    <option value="Pharmacy">Pharmacy</option>
+                    <option value="Dry Cleaning">Dry Cleaning</option>
+                    <option value="Landscaping">Landscaping</option>
+                    <option value="Catering">Catering</option>
+                    <option value="Food Truck">Food Truck</option>
+                    <option value="Photography">Photography</option>
+                    <option value="Tutoring">Tutoring</option>
+                    <option value="Bookkeeping">Bookkeeping</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            
+            <div class="grid-2 gap-4 mb-4">
+                <div class="form-group">
+                    <label class="form-label" for="city">City</label>
+                    <input type="text" id="city" class="input" placeholder="e.g. Austin">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="state">State</label>
+                    <input type="text" id="state" class="input" placeholder="e.g. TX">
+                </div>
+            </div>
+            
+            <div class="form-group mb-6">
+                <label class="form-label" for="email">Business Email</label>
+                <input type="email" id="email" class="input input--lg" placeholder="hello@rosasbakery.com">
+                <div class="form-error hidden" id="error-email">Please enter a valid email address.</div>
+            </div>
+            
+            <button class="btn btn--primary btn--lg btn--full" onclick="handleStep1()">Continue →</button>
+        </div>
+
+        <!-- Step 2: Verify Business -->
+        <div id="step-2" class="card card__body card__body--lg hidden">
+            <h2 class="section-title mb-2">Let's confirm you're a real business 🏪</h2>
+            <p class="text-secondary mb-6">We just need one official document. This protects every seller and buyer on the platform. It takes 30 seconds.</p>
+            
+            <div class="form-group mb-6">
+                <label class="form-label" for="doc-type">Document Type</label>
+                <select id="doc-type" class="input">
+                    <option value="license">Business License</option>
+                    <option value="ein">EIN Confirmation Letter</option>
+                    <option value="tax">Tax Document</option>
+                    <option value="utility">Utility Bill with Business Name</option>
+                </select>
+            </div>
+            
+            <div class="dropzone mb-6" id="verify-dropzone">
+                <div class="dropzone__icon text-4xl mb-2">📄</div>
+                <h3 class="dropzone__title" id="upload-title">Click to upload or drag & drop</h3>
+                <p class="dropzone__sub" id="upload-sub">JPG, PNG, PDF (max 10MB)</p>
+                <input type="file" class="dropzone__input" id="verify-file" accept=".jpg,.png,.pdf">
+            </div>
+
+            <div class="alert alert--success mb-6 hidden" id="verify-success">
+                <span class="alert__icon">✅</span>
+                <div>
+                    <strong class="alert__title">Document submitted!</strong>
+                    <p>We'll review within 24 hours. You can start selling right away.</p>
+                </div>
+            </div>
+            
+            <button class="btn btn--primary btn--lg btn--full" onclick="nextStep(2)">Continue →</button>
+        </div>
+
+        <!-- Step 3: Connect Payout -->
+        <div id="step-3" class="card card__body card__body--lg hidden">
+            <h2 class="section-title mb-2">How should we pay you? 💳</h2>
+            <p class="text-secondary mb-6">DataVault takes a flat 5% platform fee on all sales. You keep the rest.</p>
+            
+            <div class="grid-2 gap-4 mb-6">
+                <div id="stripe-btn" class="card card--accent card__body text-center cursor-pointer hover:border-accent">
+                    <div class="text-3xl mb-2">🏦</div>
+                    <h3 class="font-bold mb-1">Connect Stripe</h3>
+                    <p class="text-sm text-secondary">Bank account direct deposit</p>
+                </div>
+                <div id="paypal-btn" class="card card__body text-center cursor-pointer hover:border-primary">
+                    <div class="text-3xl mb-2">🅿️</div>
+                    <h3 class="font-bold mb-1">Connect PayPal</h3>
+                    <p class="text-sm text-secondary">Enter your PayPal email</p>
+                </div>
+            </div>
+
+            <div id="paypal-form" class="form-group mb-6 hidden">
+                <label class="form-label" for="paypal-email">PayPal Email</label>
+                <input type="email" id="paypal-email" class="input input--lg" placeholder="paypal@business.com">
+            </div>
+            
+            <div class="text-center mb-6">
+                <a href="#" class="text-sm text-secondary underline" onclick="nextStep(3); return false;">Skip for now (you can add this later)</a>
+            </div>
+            
+            <button class="btn btn--primary btn--lg btn--full" onclick="handleStep3()">Continue →</button>
+        </div>
+
+        <!-- Step 4: Success -->
+        <div id="step-4" class="card card__body card__body--lg hidden text-center">
+            <div class="confetti-container mb-4">
+                <div class="text-6xl z-10 relative">🎉</div>
+                <div class="confetti"></div>
+                <div class="confetti"></div>
+                <div class="confetti"></div>
+                <div class="confetti"></div>
+                <div class="confetti"></div>
+                <div class="confetti"></div>
+                <div class="confetti"></div>
+                <div class="confetti"></div>
+                <div class="confetti"></div>
+            </div>
+            
+            <h2 class="section-title mb-2" id="success-heading">You're all set!</h2>
+            <p class="text-secondary mb-8">Your DataVault account is live. Start listing your data and let buyers compete for it.</p>
+            
+            <div class="flex flex-col gap-4">
+                <a href="upload.html" class="btn btn--accent btn--xl btn--full">Upload My First Dataset →</a>
+                <a href="dashboard.html" class="btn btn--outline btn--lg btn--full">Go to My Dashboard</a>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer section section--sm text-secondary">
+        <div class="container">
+            <div class="footer__grid grid grid-4 gap-8 mb-8">
+                <div>
+                    <a href="index.html" class="footer__logo font-bold text-lg text-primary mb-4 flex items-center gap-2">
+                        <span>🔐</span> DataVault
+                    </a>
+                    <p class="footer__tagline text-sm">Empowering small businesses to monetize their most valuable asset — their data.</p>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Platform</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="marketplace.html" class="footer__link">Marketplace</a></li>
+                        <li><a href="onboard.html" class="footer__link">For Sellers</a></li>
+                        <li><a href="pricing.html" class="footer__link">Pricing & Fees</a></li>
+                        <li><a href="index.html#how-it-works" class="footer__link">How It Works</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Company & Support</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="about.html" class="footer__link">About DataVault</a></li>
+                        <li><a href="faq.html" class="footer__link">Help Center</a></li>
+                        <li><a href="contact.html" class="footer__link">Contact Support</a></li>
+                        <li><a href="login.html" class="footer__link">Account Login</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer__col-title font-bold mb-4">Legal & Privacy</h4>
+                    <ul class="flex flex-col gap-3 text-sm">
+                        <li><a href="privacy.html" class="footer__link">Privacy Policy</a></li>
+                        <li><a href="terms.html" class="footer__link">Terms of Service</a></li>
+                        <li><a href="cookies.html" class="footer__link">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="divider mb-6"></div>
+            <div class="footer__bottom flex justify-between items-center text-xs">
+                <p>© 2026 DataVault Inc. All rights reserved. Encrypted & Verified Data Exchange.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/app.js" defer></script>
+    <script>
+        let currentUser = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session } } = await window.DVSupabase.supabase.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                const profile = await window.DVSupabase.profiles.get(currentUser.id);
+                if (profile && profile.role === 'seller') {
+                    document.getElementById('step-1').classList.add('hidden');
+                    document.getElementById('step-indicator-1').classList.remove('step--active');
+                    document.getElementById('step-indicator-1').classList.add('step--done');
+                    document.getElementById('step-indicator-2').classList.add('step--done');
+                    document.getElementById('step-indicator-3').classList.add('step--done');
+                    document.getElementById('step-indicator-4').classList.add('step--active');
+                    
+                    document.getElementById('step-4').classList.remove('hidden');
+                    document.getElementById('success-heading').textContent = 'You already have an account!';
+                }
+            }
+        });
+
+        // Dropzone interaction
+        const verifyFile = document.getElementById('verify-file');
+        const verifySuccess = document.getElementById('verify-success');
+        const uploadTitle = document.getElementById('upload-title');
+        const uploadSub = document.getElementById('upload-sub');
+
+        if (verifyFile) {
+            verifyFile.addEventListener('change', async function() {
+                if (this.files && this.files.length > 0) {
+                    const file = this.files[0];
+                    if (!currentUser) return;
+                    
+                    uploadTitle.textContent = 'Uploading...';
+                    uploadSub.textContent = 'Please wait.';
+                    
+                    try {
+                        await window.DVSupabase.profiles.uploadVerificationDoc(currentUser.id, file);
+                        verifySuccess.classList.remove('hidden');
+                        uploadTitle.textContent = 'Uploaded successfully!';
+                        uploadSub.textContent = file.name;
+                    } catch (e) {
+                        console.error('Upload failed', e);
+                        uploadTitle.textContent = 'Upload failed';
+                        uploadSub.textContent = 'Please try again.';
+                    }
+                }
+            });
+        }
+
+        async function handleStep1() {
+            const bName = document.getElementById('business-name');
+            const email = document.getElementById('email');
+            const industry = document.getElementById('industry').value;
+            const city = document.getElementById('city').value;
+            const state = document.getElementById('state').value;
+            
+            let isValid = true;
+            
+            if (!bName.value.trim()) {
+                isValid = false;
+                bName.classList.add('input--error');
+                document.getElementById('error-business-name').classList.remove('hidden');
+            } else {
+                bName.classList.remove('input--error');
+                document.getElementById('error-business-name').classList.add('hidden');
+            }
+            
+            if (!email.value.trim() || !email.value.includes('@')) {
+                isValid = false;
+                email.classList.add('input--error');
+                document.getElementById('error-email').classList.remove('hidden');
+            } else {
+                email.classList.remove('input--error');
+                document.getElementById('error-email').classList.add('hidden');
+            }
+
+            if (!isValid) {
+                const stepContainer = document.getElementById('step-1');
+                stepContainer.classList.add('shake');
+                setTimeout(() => stepContainer.classList.remove('shake'), 500);
+                return;
+            }
+
+            if (!currentUser) {
+                window.location.href = 'login.html?returnTo=' + encodeURIComponent(window.location.href);
+                return;
+            }
+
+            try {
+                await window.DVSupabase.profiles.upsert({
+                    id: currentUser.id,
+                    email: email.value.trim(),
+                    role: 'seller',
+                    business_name: bName.value.trim(),
+                    industry: industry,
+                    city: city,
+                    state: state
+                });
+                document.getElementById('success-heading').textContent = `You're all set, ${bName.value.trim()}!`;
+                nextStep(1);
+            } catch (e) {
+                console.error(e);
+                alert('Failed to save profile. Please try again.');
+            }
+        }
+
+        document.getElementById('stripe-btn').addEventListener('click', () => {
+            if (window.Toast && window.Toast.warning) {
+                window.Toast.warning("Stripe Connect setup coming soon! We'll email you instructions to set up your payout account.");
+            } else {
+                alert("Stripe Connect setup coming soon! We'll email you instructions to set up your payout account.");
+            }
+        });
+
+        document.getElementById('paypal-btn').addEventListener('click', () => {
+            document.getElementById('paypal-form').classList.remove('hidden');
+        });
+
+        async function handleStep3() {
+            const paypalEmail = document.getElementById('paypal-email').value.trim();
+            if (paypalEmail && currentUser) {
+                try {
+                    await window.DVSupabase.profiles.update(currentUser.id, { paypal_email: paypalEmail });
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+            nextStep(3);
+        }
+
+        function nextStep(currentStep) {
+            const stepContainer = document.getElementById(`step-${currentStep}`);
+            
+            // Hide current step
+            stepContainer.classList.add('hidden');
+            
+            // Update indicators
+            document.getElementById(`step-indicator-${currentStep}`).classList.remove('step--active');
+            document.getElementById(`step-indicator-${currentStep}`).classList.add('step--done');
+            
+            if (currentStep < 4) {
+                document.getElementById(`step-indicator-${currentStep + 1}`).classList.add('step--active');
+                
+                // Show next step
+                const nextStepContainer = document.getElementById(`step-${currentStep + 1}`);
+                nextStepContainer.classList.remove('hidden');
+                nextStepContainer.classList.add('animate-fade-up');
+            }
+        }
+    </script>
+</body>
+</html>
