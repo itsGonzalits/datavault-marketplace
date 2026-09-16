@@ -259,6 +259,19 @@ h1,h2,h3,h4,h5,h6 {
   gap: var(--sp-3);
 }
 
+.nav__actions .btn--outline {
+  border-color: var(--c-primary);
+  color: var(--c-primary);
+  background: color-mix(in srgb, var(--c-primary) 6%, transparent);
+  font-weight: 600;
+}
+
+.nav__actions .btn--outline:hover {
+  background: var(--c-primary);
+  color: #fff;
+  border-color: var(--c-primary);
+}
+
 .nav__hamburger {
   display: none;
   background: none;

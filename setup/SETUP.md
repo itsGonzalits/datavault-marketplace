@@ -14,15 +14,18 @@ This guide will walk you through setting up the complete backend infrastructure 
 3. Copy the contents of `schema.sql` and paste it into the editor.
 4. Click **Run**. This will create all tables, indexes, policies, and triggers.
 
-## 3. Enable Google OAuth
-1. Go to **Authentication > Providers** in the Supabase dashboard.
-2. Enable **Google**.
-3. You will need to obtain a Client ID and Client Secret from the [Google Cloud Console](https://console.cloud.google.com/):
-   - Create a new project.
-   - Set up the OAuth consent screen.
-   - Create OAuth 2.0 Client IDs (Web application).
-   - Add your Supabase project URL + `/auth/v1/callback` as an Authorized redirect URI.
-4. Enter the Client ID and Secret in Supabase and click **Save**.
+## 3. Enable Google OAuth in Netlify Identity
+1. In your Netlify dashboard, go to your site: **datavault-marketplace**.
+2. Navigate to **Site configuration > Identity > External providers**.
+3. Click **Add provider** and select **Google**.
+4. You have two options:
+   - **Default Netlify credentials**: Zero setup, works instantly for testing and prototyping.
+   - **Custom Google Cloud credentials**: For production branding ("Continue to DataVault"):
+     - Go to [Google Cloud Console > Credentials](https://console.cloud.google.com/apis/credentials).
+     - Configure the OAuth Consent Screen (App name: DataVault, user support email, etc.).
+     - Create an **OAuth client ID** of type **Web application**.
+     - Add Authorized redirect URI: `https://datavaultmarket.com/.netlify/identity/callback` (and `https://datavault-marketplace.netlify.app/.netlify/identity/callback`).
+     - Copy your **Client ID** and **Client Secret** into Netlify's Google provider settings and click **Save**.
 
 ## 4. Create Storage Buckets
 1. Go to **Storage** in the Supabase dashboard.

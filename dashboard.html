@@ -289,24 +289,28 @@
     <div class="section-box">
         <h2>Seller Profile Settings</h2>
         <form id="settings-form">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                <div class="form-group">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
+                <div class="form-group" style="grid-column: span 3;">
                     <label>Business Name</label>
                     <input type="text" id="set-business-name" class="form-control" required>
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="grid-column: span 3;">
                     <label>Industry</label>
                     <input type="text" id="set-industry" class="form-control">
                 </div>
                 <div class="form-group">
                     <label>City</label>
-                    <input type="text" id="set-city" class="form-control">
+                    <input type="text" id="set-city" class="form-control" placeholder="e.g. London">
                 </div>
                 <div class="form-group">
-                    <label>State/Region</label>
-                    <input type="text" id="set-state" class="form-control">
+                    <label>State / Region / Province</label>
+                    <input type="text" id="set-state" class="form-control" placeholder="e.g. England">
                 </div>
-                <div class="form-group" style="grid-column: span 2;">
+                <div class="form-group">
+                    <label>Country</label>
+                    <input type="text" id="set-country" class="form-control" placeholder="e.g. United Kingdom">
+                </div>
+                <div class="form-group" style="grid-column: span 3;">
                     <label>PayPal Email (for payouts)</label>
                     <input type="email" id="set-paypal" class="form-control">
                 </div>
@@ -397,7 +401,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         } catch (err) {
             console.warn('[dashboard] API error, using fallback data:', err.message);
             // Fallback demo data
-            profile  = { business_name: 'Acme Data', verified: true, industry: 'Tech', city: 'SF', state: 'CA', paypal_email: 'payouts@acme.com' };
+            profile  = { business_name: 'Acme Data', verified: true, industry: 'Tech', city: 'SF', state: 'CA', country: 'United States', paypal_email: 'payouts@acme.com' };
             datasets = [{ id: '1', title: 'User Behavior Q3', category: 'Analytics', current_top_bid: 500, bid_count: 5, auction_end: new Date(Date.now() + 86400000).toISOString(), status: 'active' }];
             earnings = [{ created_at: new Date().toISOString(), dataset_title: 'Finance Data 2022', amount: 1000, platform_fee: 50, seller_payout: 950 }];
         }
@@ -519,6 +523,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.getElementById('set-industry').value = profile.industry || '';
             document.getElementById('set-city').value = profile.city || '';
             document.getElementById('set-state').value = profile.state || '';
+            if (document.getElementById('set-country')) {
+                document.getElementById('set-country').value = profile.country || '';
+            }
             document.getElementById('set-paypal').value = profile.paypal_email || '';
         }
     }
@@ -532,6 +539,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             industry: document.getElementById('set-industry').value,
             city: document.getElementById('set-city').value,
             state: document.getElementById('set-state').value,
+            country: document.getElementById('set-country') ? document.getElementById('set-country').value : '',
             paypal_email: document.getElementById('set-paypal').value
         };
 

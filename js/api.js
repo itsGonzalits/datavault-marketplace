@@ -24,7 +24,15 @@ const API_BASE = (() => {
    ---------------------------------------------------------- */
 async function apiFetch(path, options = {}) {
   const identity = window.netlifyIdentity;
-  const token    = identity?.currentUser()?.token?.access_token;
+  const user     = identity?.currentUser();
+  let token      = user?.token?.access_token;
+  if (user && typeof user.jwt === 'function') {
+    try {
+      token = await user.jwt();
+    } catch {
+      token = user?.token?.access_token;
+    }
+  }
 
   const headers = {
     'Content-Type': 'application/json',
@@ -61,9 +69,26 @@ const DVAuth = {
     return this.currentUser();
   },
 
+  /* Get current session — compatible with Supabase getSession() */
+  async getSession() {
+    const user = this.currentUser();
+    return { data: { session: user ? { user } : null }, error: null };
+  },
+
   /* Open login modal */
   openLogin() {
     window.netlifyIdentity?.open('login');
+  },
+
+  /* Direct Google OAuth */
+  signInWithGoogle() {
+    if (window.DV_CONFIG?.DEMO_MODE) {
+      window.DV?.Toast?.error?.('Google sign-in requires running on the live site.');
+      return;
+    }
+    const authUrl = window.netlifyIdentity?.gotrue?.loginExternalUrl('google')
+      || '/.netlify/identity/authorize?provider=google';
+    window.location.href = authUrl;
   },
 
   /* Open signup modal */
@@ -220,24 +245,42 @@ const DVBids = {
 const DVProfiles = {
 
   async get(userId) {
-    const data = await apiFetch(`/profile?user_id=${encodeURIComponent(userId)}`);
-    return { data: data.profile, error: null };
+    if (window.DV_CONFIG?.DEMO_MODE) return { data: DEMO_DATA.profile, error: null };
+    try {
+      const data = await apiFetch(`/profile?user_id=${encodeURIComponent(userId)}`);
+      return { data: data.profile, error: null };
+    } catch (err) {
+      console.warn('[DVProfiles.get]', err.message);
+      return { data: null, error: err };
+    }
   },
 
   async upsert(profileData) {
-    const data = await apiFetch('/profile', {
-      method: 'POST',
-      body: JSON.stringify(profileData),
-    });
-    return { data: data.profile, error: null };
+    if (window.DV_CONFIG?.DEMO_MODE) return { data: profileData, error: null };
+    try {
+      const data = await apiFetch('/profile', {
+        method: 'POST',
+        body: JSON.stringify(profileData),
+      });
+      return { data: data.profile, error: null };
+    } catch (err) {
+      console.warn('[DVProfiles.upsert]', err.message);
+      throw err;
+    }
   },
 
   async update(userId, fields) {
-    const data = await apiFetch('/profile', {
-      method: 'PATCH',
-      body: JSON.stringify({ user_id: userId, ...fields }),
-    });
-    return { data: data.profile, error: null };
+    if (window.DV_CONFIG?.DEMO_MODE) return { data: { id: userId, ...fields }, error: null };
+    try {
+      const data = await apiFetch('/profile', {
+        method: 'PATCH',
+        body: JSON.stringify({ user_id: userId, ...fields }),
+      });
+      return { data: data.profile, error: null };
+    } catch (err) {
+      console.warn('[DVProfiles.update]', err.message);
+      throw err;
+    }
   },
 
   async uploadVerificationDoc(userId, file) {
@@ -293,6 +336,7 @@ const DEMO_DATA = {
     industry: 'Bakery',
     city: 'Austin',
     state: 'TX',
+    country: 'United States',
     verified: true,
   },
   stats: {
@@ -302,12 +346,15 @@ const DEMO_DATA = {
     satisfaction_pct: 98.4,
   },
   datasets: [
-    { id: 'demo-1', title: 'Downtown Café Sales 2023–2024', description: '24 months of daily sales, 18,400+ transactions.', category: 'Retail Sales', location: 'Austin, TX', starting_bid: 200, reserve_price: 400, current_top_bid: 680, bid_count: 8, row_count: 18420, date_range_start: '2023-01-01', date_range_end: '2024-12-31', auction_end: new Date(Date.now() + 3.5 * 86400000).toISOString(), status: 'active', seller: { business_name: "Rosa's Café", verified: true } },
-    { id: 'demo-2', title: 'Boutique Inventory & Pricing 2024', description: 'Complete inventory turnover and pricing history.', category: 'Inventory', location: 'Nashville, TN', starting_bid: 150, reserve_price: 300, current_top_bid: 320, bid_count: 4, row_count: 5200, date_range_start: '2024-01-01', date_range_end: '2024-12-31', auction_end: new Date(Date.now() + 1.2 * 86400000).toISOString(), status: 'active', seller: { business_name: 'Bella Boutique', verified: true } },
-    { id: 'demo-3', title: 'Restaurant Foot Traffic Q1–Q3 2024', description: 'Hourly foot traffic counts + weather correlation.', category: 'Foot Traffic', location: 'Chicago, IL', starting_bid: 300, reserve_price: 600, current_top_bid: 0, bid_count: 0, row_count: 9800, date_range_start: '2024-01-01', date_range_end: '2024-09-30', auction_end: new Date(Date.now() + 5 * 86400000).toISOString(), status: 'active', seller: { business_name: 'The Corner Kitchen', verified: true } },
-    { id: 'demo-4', title: 'Auto Repair Service History 2022–2024', description: '3 years of service records, parts pricing, labor hours.', category: 'Services', location: 'Phoenix, AZ', starting_bid: 250, reserve_price: 500, current_top_bid: 410, bid_count: 5, row_count: 3100, date_range_start: '2022-01-01', date_range_end: '2024-12-31', auction_end: new Date(Date.now() + 2 * 86400000).toISOString(), status: 'active', seller: { business_name: "Mike's Auto", verified: true } },
-    { id: 'demo-5', title: 'Local Grocery Pricing Survey 2024', description: 'Weekly prices for 200+ SKUs across 3 competing stores.', category: 'Local Pricing', location: 'Portland, OR', starting_bid: 180, reserve_price: 350, current_top_bid: 220, bid_count: 2, row_count: 10400, date_range_start: '2024-01-01', date_range_end: '2024-12-31', auction_end: new Date(Date.now() + 4 * 86400000).toISOString(), status: 'active', seller: { business_name: 'FreshMarket Data', verified: false } },
-    { id: 'demo-6', title: 'Hair Salon Visit Patterns 2023', description: 'Appointment frequency, service types, repeat rates.', category: 'Customer Demographics', location: 'Miami, FL', starting_bid: 120, reserve_price: 250, current_top_bid: 195, bid_count: 3, row_count: 4800, date_range_start: '2023-01-01', date_range_end: '2023-12-31', auction_end: new Date(Date.now() + 6 * 86400000).toISOString(), status: 'active', seller: { business_name: 'Style Studio', verified: true } },
+    { id: 'demo-1', title: 'Downtown Café Sales 2023–2024', description: '24 months of daily sales, 18,400+ transactions.', category: 'Retail Sales', location: 'Austin, TX', country: 'United States', starting_bid: 200, reserve_price: 400, current_top_bid: 680, bid_count: 8, row_count: 18420, date_range_start: '2023-01-01', date_range_end: '2024-12-31', auction_end: new Date(Date.now() + 3.5 * 86400000).toISOString(), status: 'active', seller: { business_name: "Rosa's Café", verified: true } },
+    { id: 'demo-2', title: 'Boutique Inventory & Pricing 2024', description: 'Complete inventory turnover and pricing history.', category: 'Inventory', location: 'Nashville, TN', country: 'United States', starting_bid: 150, reserve_price: 300, current_top_bid: 320, bid_count: 4, row_count: 5200, date_range_start: '2024-01-01', date_range_end: '2024-12-31', auction_end: new Date(Date.now() + 1.2 * 86400000).toISOString(), status: 'active', seller: { business_name: 'Bella Boutique', verified: true } },
+    { id: 'demo-3', title: 'Restaurant Foot Traffic Q1–Q3 2024', description: 'Hourly foot traffic counts + weather correlation.', category: 'Foot Traffic', location: 'Chicago, IL', country: 'United States', starting_bid: 300, reserve_price: 600, current_top_bid: 0, bid_count: 0, row_count: 9800, date_range_start: '2024-01-01', date_range_end: '2024-09-30', auction_end: new Date(Date.now() + 5 * 86400000).toISOString(), status: 'active', seller: { business_name: 'The Corner Kitchen', verified: true } },
+    { id: 'demo-4', title: 'Auto Repair Service History 2022–2024', description: '3 years of service records, parts pricing, labor hours.', category: 'Services', location: 'Phoenix, AZ', country: 'United States', starting_bid: 250, reserve_price: 500, current_top_bid: 410, bid_count: 5, row_count: 3100, date_range_start: '2022-01-01', date_range_end: '2024-12-31', auction_end: new Date(Date.now() + 2 * 86400000).toISOString(), status: 'active', seller: { business_name: "Mike's Auto", verified: true } },
+    { id: 'demo-5', title: 'Local Grocery Pricing Survey 2024', description: 'Weekly prices for 200+ SKUs across 3 competing stores.', category: 'Local Pricing', location: 'Portland, OR', country: 'United States', starting_bid: 180, reserve_price: 350, current_top_bid: 220, bid_count: 2, row_count: 10400, date_range_start: '2024-01-01', date_range_end: '2024-12-31', auction_end: new Date(Date.now() + 4 * 86400000).toISOString(), status: 'active', seller: { business_name: 'FreshMarket Data', verified: false } },
+    { id: 'demo-6', title: 'Hair Salon Visit Patterns 2023', description: 'Appointment frequency, service types, repeat rates.', category: 'Customer Demographics', location: 'Miami, FL', country: 'United States', starting_bid: 120, reserve_price: 250, current_top_bid: 195, bid_count: 3, row_count: 4800, date_range_start: '2023-01-01', date_range_end: '2023-12-31', auction_end: new Date(Date.now() + 6 * 86400000).toISOString(), status: 'active', seller: { business_name: 'Style Studio', verified: true } },
+    { id: 'demo-7', title: 'London Artisan Bakery Sales 2023–2024', description: 'Urban high street footfall and sales across 2 London locations.', category: 'Retail Sales', location: 'London, Greater London, United Kingdom', country: 'United Kingdom', starting_bid: 240, reserve_price: 450, current_top_bid: 380, bid_count: 6, row_count: 15300, date_range_start: '2023-02-01', date_range_end: '2024-12-31', auction_end: new Date(Date.now() + 4.5 * 86400000).toISOString(), status: 'active', seller: { business_name: 'Bloomsbury Bakehouse', verified: true } },
+    { id: 'demo-8', title: 'Toronto Tech Hardware Wholesale Inventory 2024', description: 'Canadian tech distribution inventory turnover and margins.', category: 'Inventory', location: 'Toronto, ON, Canada', country: 'Canada', starting_bid: 350, reserve_price: 700, current_top_bid: 520, bid_count: 9, row_count: 12100, date_range_start: '2024-01-01', date_range_end: '2024-12-15', auction_end: new Date(Date.now() + 2.8 * 86400000).toISOString(), status: 'active', seller: { business_name: 'MapleCore Logistics', verified: true } },
+    { id: 'demo-9', title: 'Berlin Specialty Coffee & Habits 2024', description: 'Hourly customer visits and average basket sizes across Berlin cafes.', category: 'Customer Demographics', location: 'Berlin, Germany', country: 'Germany', starting_bid: 190, reserve_price: 380, current_top_bid: 260, bid_count: 4, row_count: 7600, date_range_start: '2024-03-01', date_range_end: '2024-11-30', auction_end: new Date(Date.now() + 6.2 * 86400000).toISOString(), status: 'active', seller: { business_name: 'KaffeeWerk Berlin', verified: true } },
   ],
 };
 
@@ -316,6 +363,7 @@ const DEMO_DATA = {
    ============================================================ */
 window.DVSupabase = {
   auth:         DVAuth,
+  supabase:     { auth: DVAuth }, // Backward compatibility shim
   profiles:     DVProfiles,
   datasets:     DVDatasets,
   bids:         DVBids,

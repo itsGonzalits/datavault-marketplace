@@ -52,18 +52,23 @@ const DVAuthManager = (() => {
       // Handle redirect after login
       const params   = new URLSearchParams(window.location.search);
       const returnTo = params.get('returnTo');
-      if (returnTo) {
+      if (returnTo && !returnTo.includes('login.html')) {
         window.location.href = decodeURIComponent(returnTo);
         return;
       }
 
       // Default redirect based on role
+      const currentPath = window.location.pathname;
+      const isOnboardPage = currentPath.endsWith('onboard.html') || currentPath.endsWith('/onboard');
+      const isDashboardPage = currentPath.endsWith('dashboard.html') || currentPath.endsWith('/dashboard');
+      const isBuyerDashboardPage = currentPath.endsWith('buyer-dashboard.html') || currentPath.endsWith('/buyer-dashboard');
+
       if (_profile?.role === 'seller') {
-        window.location.href = 'dashboard.html';
+        if (!isDashboardPage) window.location.href = 'dashboard.html';
       } else if (_profile?.role === 'buyer') {
-        window.location.href = 'buyer-dashboard.html';
+        if (!isBuyerDashboardPage) window.location.href = 'buyer-dashboard.html';
       } else {
-        window.location.href = 'onboard.html';
+        if (!isOnboardPage) window.location.href = 'onboard.html';
       }
     });
 
@@ -107,6 +112,16 @@ const DVAuthManager = (() => {
     const identity = window.netlifyIdentity;
     if (!identity) { window.location.href = 'login.html'; return; }
     identity.open('login');
+  }
+
+  function signInWithGoogle() {
+    if (window.DV_CONFIG?.DEMO_MODE) {
+      window.DV?.Toast?.error?.('Google sign-in requires running on the live deployed site.');
+      return;
+    }
+    const authUrl = window.netlifyIdentity?.gotrue?.loginExternalUrl('google')
+      || '/.netlify/identity/authorize?provider=google';
+    window.location.href = authUrl;
   }
 
   function openSignup() {
@@ -230,6 +245,7 @@ const DVAuthManager = (() => {
   return {
     init,
     openLogin,
+    signInWithGoogle,
     openSignup,
     signOut,
     requireAuth,

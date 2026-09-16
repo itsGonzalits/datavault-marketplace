@@ -70,7 +70,16 @@ exports.handler = async (event, context) => {
           d.title?.toLowerCase().includes(term) ||
           d.description?.toLowerCase().includes(term) ||
           d.category?.toLowerCase().includes(term) ||
-          d.location?.toLowerCase().includes(term)
+          d.location?.toLowerCase().includes(term) ||
+          d.country?.toLowerCase().includes(term)
+        );
+      }
+
+      // Country filter
+      if (q.country) {
+        datasets = datasets.filter(d =>
+          d.country?.toLowerCase() === q.country.toLowerCase() ||
+          d.location?.toLowerCase().includes(q.country.toLowerCase())
         );
       }
 
@@ -110,6 +119,7 @@ exports.handler = async (event, context) => {
         description:      body.description,
         category:         body.category,
         location:         body.location     || null,
+        country:          body.country      || null,
         row_count:        body.row_count    || null,
         date_range_start: body.date_range_start || null,
         date_range_end:   body.date_range_end   || null,
@@ -123,6 +133,7 @@ exports.handler = async (event, context) => {
         encryption_key:   body.encryption_key || null,
         seller:           body.seller       || { business_name: user.email, verified: false },
         created_at:       new Date().toISOString(),
+        ai_analysis:      body.ai_analysis  || null,
       };
 
       await store.set(id, JSON.stringify(dataset));

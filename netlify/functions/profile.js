@@ -50,6 +50,7 @@ exports.handler = async (event, context) => {
         industry:            body.industry        || existing.industry      || '',
         city:                body.city            || existing.city          || '',
         state:               body.state           || existing.state         || '',
+        country:             body.country         || existing.country       || '',
         verified:            existing.verified    || false,
         paypal_email:        body.paypal_email    || existing.paypal_email  || null,
         verification_doc_url: body.verification_doc_url || existing.verification_doc_url || null,

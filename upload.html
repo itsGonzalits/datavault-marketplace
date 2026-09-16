@@ -148,25 +148,51 @@
                     <label class="form-label">Category *</label>
                     <div class="flex flex-wrap gap-2 mt-2" id="category-chips">
                         <div class="category-chip" data-value="Retail Sales">🛒 Retail Sales</div>
-                        <div class="category-chip" data-value="Inventory">📦 Inventory</div>
+                        <div class="category-chip" data-value="E-Commerce">🛍️ E-Commerce</div>
+                        <div class="category-chip" data-value="Inventory">📦 Inventory & Supply</div>
                         <div class="category-chip" data-value="Foot Traffic">👣 Foot Traffic</div>
                         <div class="category-chip" data-value="Local Pricing">🏷️ Local Pricing</div>
-                        <div class="category-chip" data-value="Customer Demographics">👥 Customer Demographics</div>
-                        <div class="category-chip" data-value="Restaurant Orders">🍽️ Restaurant Orders</div>
-                        <div class="category-chip" data-value="Services">🔧 Services</div>
-                        <div class="category-chip" data-value="Other">📊 Other</div>
+                        <div class="category-chip" data-value="Customer Demographics">👥 Demographics</div>
+                        <div class="category-chip" data-value="Restaurant Orders">🍽️ Food & Dining</div>
+                        <div class="category-chip" data-value="Services">🔧 Local Services</div>
+                        <div class="category-chip" data-value="Financial & Banking">💳 Financial & FinTech</div>
+                        <div class="category-chip" data-value="Real Estate & Housing">🏠 Real Estate</div>
+                        <div class="category-chip" data-value="Healthcare & Wellness">🩺 Health & Wellness</div>
+                        <div class="category-chip" data-value="Marketing & Advertising">📈 Marketing & Ads</div>
+                        <div class="category-chip" data-value="Transportation & Logistics">🚚 Logistics & Transport</div>
+                        <div class="category-chip" data-value="Hospitality & Travel">✈️ Travel & Hospitality</div>
+                        <div class="category-chip" data-value="Other">✨ Other</div>
+                    </div>
+                    <div id="other-category-container" class="mt-3" style="display: none;">
+                        <label class="form-label text-sm" for="other-category-input">Specify Category Name *</label>
+                        <input type="text" id="other-category-input" class="input" placeholder="e.g., IoT Sensor Telemetry, Agriculture Yields, Event Ticketing...">
                     </div>
                     <input type="hidden" id="category" required>
                 </div>
 
-                <div class="grid-2 gap-4 mb-6">
+                <div class="grid-3 gap-4 mb-6">
                     <div class="form-group">
-                        <label class="form-label" for="location">Location</label>
-                        <input type="text" id="location" class="input" placeholder="e.g. Austin, TX">
+                        <label class="form-label" for="loc-city">City</label>
+                        <input type="text" id="loc-city" class="input" placeholder="e.g. London, Toronto, Austin">
                     </div>
+                    <div class="form-group">
+                        <label class="form-label" for="loc-state">State / Region / Province</label>
+                        <input type="text" id="loc-state" class="input" placeholder="e.g. Greater London, ON, TX">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="loc-country">Country</label>
+                        <input type="text" id="loc-country" class="input" placeholder="e.g. United Kingdom, Canada, US">
+                    </div>
+                </div>
+
+                <div class="grid-2 gap-4 mb-6">
                     <div class="form-group">
                         <label class="form-label" for="row-count">Approximate Row Count</label>
                         <input type="number" id="row-count" class="input" placeholder="e.g. 5000" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="location-display-summary">Location Summary</label>
+                        <input type="text" id="location" class="input" placeholder="e.g. London, UK (or auto-combined)">
                     </div>
                 </div>
 
@@ -304,6 +330,14 @@
     let selectedCategory = null;
     let selectedDuration = 7;
     let currentDatasetId = null;
+    let aiAnalysis       = null;
+
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+    });
 
     /* ── Auth check ──────────────────────────────────────────── */
     document.addEventListener('DOMContentLoaded', async () => {
@@ -370,7 +404,21 @@
             let aiMeta = null;
 
             try {
-                if (file.type.includes('text') || file.name.endsWith('.csv') || file.name.endsWith('.json') || file.name.endsWith('.txt')) {
+                if (file.type.startsWith('image/')) {
+                    status.textContent = '📸 Extracting tables & text via Gemini OCR…';
+                    const base64 = await toBase64(file);
+                    const aiRes = await fetch('/api/ai-clean-and-summarize', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ base64Data: base64, mimeType: file.type, originalName: file.name })
+                    });
+                    const aiData = await aiRes.json();
+                    if (aiData.success && aiData.cleanedContent) {
+                        cleanedFile = new File([aiData.cleanedContent], file.name.replace(/\.[^/.]+$/, "") + '.csv', { type: 'text/csv' });
+                        aiMeta = aiData.metadata;
+                        console.log(`[AI Scrubber OCR] Extracted CSV from image. PII scrubbed.`);
+                    }
+                } else if (file.type.includes('text') || file.name.endsWith('.csv') || file.name.endsWith('.json') || file.name.endsWith('.txt')) {
                     const text = await file.text();
                     const aiRes = await fetch('/api/ai-clean-and-summarize', {
                         method: 'POST',
@@ -436,12 +484,25 @@
                 document.getElementById('file-icon').textContent = getFileIcon(file.name);
 
                 if (aiMeta) {
+                    aiAnalysis = aiMeta.ai_analysis || null;
                     if (aiMeta.title) document.getElementById('title').value = aiMeta.title;
                     if (aiMeta.description) document.getElementById('desc').value = aiMeta.description;
                     if (aiMeta.rowCount) document.getElementById('row-count').value = aiMeta.rowCount;
                     if (aiMeta.category) {
-                        const chip = Array.from(document.querySelectorAll('.category-chip')).find(c => c.dataset.value === aiMeta.category);
-                        if (chip) chip.click();
+                        const chip = Array.from(document.querySelectorAll('.category-chip')).find(c => c.dataset.value.toLowerCase() === aiMeta.category.toLowerCase());
+                        if (chip) {
+                            chip.click();
+                        } else {
+                            const otherChip = Array.from(document.querySelectorAll('.category-chip')).find(c => c.dataset.value === 'Other');
+                            if (otherChip) {
+                                otherChip.click();
+                                const otherInput = document.getElementById('other-category-input');
+                                if (otherInput) {
+                                    otherInput.value = aiMeta.category;
+                                    otherInput.dispatchEvent(new Event('input'));
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -458,14 +519,33 @@
 
     /* ── Category chips ──────────────────────────────────────── */
     function initCategoryChips() {
+        const otherContainer = document.getElementById('other-category-container');
+        const otherInput = document.getElementById('other-category-input');
+
         document.querySelectorAll('.category-chip').forEach(chip => {
             chip.addEventListener('click', () => {
                 document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('selected'));
                 chip.classList.add('selected');
-                selectedCategory = chip.dataset.value;
+                const val = chip.dataset.value;
+                if (val === 'Other') {
+                    otherContainer.style.display = 'block';
+                    otherInput.focus();
+                    selectedCategory = otherInput.value.trim() || 'Other';
+                } else {
+                    otherContainer.style.display = 'none';
+                    selectedCategory = val;
+                }
                 document.getElementById('category').value = selectedCategory;
             });
         });
+
+        if (otherInput) {
+            otherInput.addEventListener('input', (e) => {
+                const customVal = e.target.value.trim();
+                selectedCategory = customVal || 'Other';
+                document.getElementById('category').value = selectedCategory;
+            });
+        }
     }
 
     /* ── Duration options ────────────────────────────────────── */
@@ -495,7 +575,16 @@
         // Validate
         const title    = document.getElementById('title').value.trim();
         const desc     = document.getElementById('desc').value.trim();
-        const category = selectedCategory || document.getElementById('category').value;
+        const otherInput = document.getElementById('other-category-input');
+        const isOtherSelected = document.querySelector('.category-chip.selected')?.dataset.value === 'Other';
+        let category = selectedCategory || document.getElementById('category').value;
+        if (isOtherSelected) {
+            const customCat = otherInput ? otherInput.value.trim() : '';
+            if (!customCat) {
+                return DV.Toast.error('Please specify your custom category.');
+            }
+            category = customCat;
+        }
         const startBid = parseFloat(document.getElementById('start-bid').value);
         const reserve  = parseFloat(document.getElementById('reserve').value);
 
@@ -513,12 +602,23 @@
             const user       = DVAuthManager.user || { id: 'demo-user' };
             const auctionEnd = new Date(Date.now() + selectedDuration * 86400 * 1000).toISOString();
 
+            const rawLocation = document.getElementById('location').value.trim();
+            const cityVal     = document.getElementById('loc-city') ? document.getElementById('loc-city').value.trim() : '';
+            const stateVal    = document.getElementById('loc-state') ? document.getElementById('loc-state').value.trim() : '';
+            const countryVal  = document.getElementById('loc-country') ? document.getElementById('loc-country').value.trim() : '';
+
+            let finalLocation = rawLocation;
+            if (!finalLocation) {
+                finalLocation = [cityVal, stateVal, countryVal].filter(Boolean).join(', ');
+            }
+
             const datasetPayload = {
                 seller_id:        user.id,
                 title,
                 description:      desc,
                 category,
-                location:         document.getElementById('location').value.trim() || null,
+                location:         finalLocation || null,
+                country:          countryVal || null,
                 row_count:        parseInt(document.getElementById('row-count').value) || null,
                 date_range_start: document.getElementById('date-start').value || null,
                 date_range_end:   document.getElementById('date-end').value || null,
@@ -529,6 +629,7 @@
                 status:           'active',
                 file_path:        encryptedResult?.storagePath || null,  // matches datasets.js + release-dataset.js
                 encryption_key:   encryptedResult?.keyB64 || null,
+                ai_analysis:      aiAnalysis,
                 // Embed seller display info so dataset.html can render without a profile join
                 seller: {
                     business_name: DVAuthManager.profile?.business_name || user.email || 'Seller',

@@ -142,14 +142,18 @@
                 </select>
             </div>
             
-            <div class="grid-2 gap-4 mb-4">
+            <div class="grid-3 gap-4 mb-4">
                 <div class="form-group">
                     <label class="form-label" for="city">City</label>
-                    <input type="text" id="city" class="input" placeholder="e.g. Austin">
+                    <input type="text" id="city" class="input" placeholder="e.g. London, Toronto, Austin">
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="state">State</label>
-                    <input type="text" id="state" class="input" placeholder="e.g. TX">
+                    <label class="form-label" for="state">State / Region / Province</label>
+                    <input type="text" id="state" class="input" placeholder="e.g. ON, England, TX">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="country">Country</label>
+                    <input type="text" id="country" class="input" placeholder="e.g. United Kingdom, Canada, US">
                 </div>
             </div>
             
@@ -299,22 +303,96 @@
     <script>
         let currentUser = null;
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            const { data: { session } } = await window.DVSupabase.supabase.auth.getSession();
-            if (session) {
-                currentUser = session.user;
-                const profile = await window.DVSupabase.profiles.get(currentUser.id);
-                if (profile && profile.role === 'seller') {
-                    document.getElementById('step-1').classList.add('hidden');
-                    document.getElementById('step-indicator-1').classList.remove('step--active');
-                    document.getElementById('step-indicator-1').classList.add('step--done');
-                    document.getElementById('step-indicator-2').classList.add('step--done');
-                    document.getElementById('step-indicator-3').classList.add('step--done');
-                    document.getElementById('step-indicator-4').classList.add('step--active');
-                    
-                    document.getElementById('step-4').classList.remove('hidden');
-                    document.getElementById('success-heading').textContent = 'You already have an account!';
+        async function initAuth() {
+            // Wait briefly for Netlify Identity widget session restoration
+            await new Promise(r => setTimeout(r, 250));
+
+            currentUser = window.netlifyIdentity?.currentUser() || window.DVAuthManager?.user || null;
+
+            // Demo mode check
+            if (!currentUser && (window.DV_CONFIG?.DEMO_MODE || window.location.search.includes('demo'))) {
+                window.DVAuthManager?.enableDemoUser('seller');
+                currentUser = window.DVAuthManager?.user;
+            }
+
+            // Restore any previously entered form values from sessionStorage
+            const pendingData = sessionStorage.getItem('pending_onboarding');
+            if (pendingData) {
+                try {
+                    const parsed = JSON.parse(pendingData);
+                    if (parsed.business_name && document.getElementById('business-name')) {
+                        document.getElementById('business-name').value = parsed.business_name;
+                    }
+                    if (parsed.industry && document.getElementById('industry')) {
+                        document.getElementById('industry').value = parsed.industry;
+                    }
+                    if (parsed.city && document.getElementById('city')) {
+                        document.getElementById('city').value = parsed.city;
+                    }
+                    if (parsed.state && document.getElementById('state')) {
+                        document.getElementById('state').value = parsed.state;
+                    }
+                    if (parsed.email && document.getElementById('email')) {
+                        document.getElementById('email').value = parsed.email;
+                    }
+                    sessionStorage.removeItem('pending_onboarding');
+                } catch (e) {
+                    console.warn('Could not restore pending onboarding data', e);
                 }
+            }
+
+            // Pre-fill email from logged-in user if input is currently empty
+            if (currentUser?.email) {
+                const emailInput = document.getElementById('email');
+                if (emailInput && !emailInput.value) {
+                    emailInput.value = currentUser.email;
+                }
+            }
+
+            // If user has an existing seller profile, show step 4
+            if (currentUser?.id) {
+                try {
+                    const res = await window.DVSupabase.profiles.get(currentUser.id);
+                    const profile = res?.data;
+                    if (profile && (profile.role === 'seller' || profile.role === 'both')) {
+                        document.getElementById('step-1').classList.add('hidden');
+                        document.getElementById('step-indicator-1').classList.remove('step--active');
+                        document.getElementById('step-indicator-1').classList.add('step--done');
+                        document.getElementById('step-indicator-2').classList.add('step--done');
+                        document.getElementById('step-indicator-3').classList.add('step--done');
+                        document.getElementById('step-indicator-4').classList.add('step--active');
+                        
+                        document.getElementById('step-4').classList.remove('hidden');
+                        document.getElementById('success-heading').textContent = 'You already have an account!';
+                    }
+                } catch (e) {
+                    console.warn('Profile check warning', e);
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initAuth();
+
+            if (window.netlifyIdentity) {
+                window.netlifyIdentity.on('init', user => {
+                    if (user && !currentUser) {
+                        currentUser = user;
+                        const emailInput = document.getElementById('email');
+                        if (emailInput && !emailInput.value && user.email) {
+                            emailInput.value = user.email;
+                        }
+                    }
+                });
+                window.netlifyIdentity.on('login', user => {
+                    if (user) {
+                        currentUser = user;
+                        const emailInput = document.getElementById('email');
+                        if (emailInput && !emailInput.value && user.email) {
+                            emailInput.value = user.email;
+                        }
+                    }
+                });
             }
         });
 
@@ -353,6 +431,7 @@
             const industry = document.getElementById('industry').value;
             const city = document.getElementById('city').value;
             const state = document.getElementById('state').value;
+            const country = document.getElementById('country') ? document.getElementById('country').value.trim() : '';
             
             let isValid = true;
             
@@ -381,10 +460,27 @@
                 return;
             }
 
+            // Fresh check of currentUser in case identity just finished restoring
             if (!currentUser) {
+                currentUser = window.netlifyIdentity?.currentUser() || window.DVAuthManager?.user || null;
+            }
+
+            if (!currentUser) {
+                // Save form in sessionStorage so user doesn't lose data after logging in
+                sessionStorage.setItem('pending_onboarding', JSON.stringify({
+                    business_name: bName.value.trim(),
+                    industry,
+                    city,
+                    state,
+                    email: email.value.trim()
+                }));
                 window.location.href = 'login.html?returnTo=' + encodeURIComponent(window.location.href);
                 return;
             }
+
+            const btn = document.querySelector('#step-1 button');
+            const origText = btn ? btn.textContent : '';
+            if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
 
             try {
                 await window.DVSupabase.profiles.upsert({
@@ -394,13 +490,20 @@
                     business_name: bName.value.trim(),
                     industry: industry,
                     city: city,
-                    state: state
+                    state: state,
+                    country: country
                 });
                 document.getElementById('success-heading').textContent = `You're all set, ${bName.value.trim()}!`;
                 nextStep(1);
             } catch (e) {
                 console.error(e);
-                alert('Failed to save profile. Please try again.');
+                if (window.DV?.Toast?.error) {
+                    window.DV.Toast.error('Failed to save profile: ' + (e.message || 'Please try again.'));
+                } else {
+                    alert('Failed to save profile. Please try again.');
+                }
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = origText; }
             }
         }
 

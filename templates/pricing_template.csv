@@ -1,21 +1,21 @@
-Date Collected,Item Name,Category,Our Price,Competitor A Price,Competitor B Price,Competitor C Price,Online Avg Price,Price Rank (1=cheapest),Notes,City,State
-2024-11-01,Engine Oil 5W-30 5qt,Automotive Fluids,28.99,31.49,29.99,32.00,30.50,1,Lowest in area,Phoenix,AZ
-2024-11-01,Brake Pads - Ceramic Front,Brake Parts,64.99,69.99,62.50,71.00,67.25,2,Competitive,Phoenix,AZ
-2024-11-01,Air Filter - Standard,Filters,18.99,21.99,19.50,22.00,20.75,1,Lowest in area,Phoenix,AZ
-2024-11-01,Windshield Wipers 22in,Wipers,14.99,16.99,14.99,17.50,16.12,1,Tied with Comp B,Phoenix,AZ
-2024-11-01,Transmission Fluid 1qt,Automotive Fluids,12.99,14.99,13.50,15.00,13.87,1,,Phoenix,AZ
-2024-11-01,Coolant/Antifreeze 1gal,Automotive Fluids,19.99,21.99,20.50,22.99,21.37,1,,Phoenix,AZ
-2024-11-01,Battery - 65 Group,Batteries,129.99,139.99,124.99,145.00,135.00,2,Comp B slightly cheaper,Phoenix,AZ
-2024-11-01,Spark Plugs - Iridium (set 4),Ignition,38.99,42.99,39.99,44.00,41.25,1,,Phoenix,AZ
-2024-11-01,Cabin Air Filter,Filters,22.99,26.99,23.50,27.00,25.12,1,,Phoenix,AZ
-2024-11-01,Headlight Bulb H11,Lighting,18.99,22.99,19.99,23.50,21.37,1,,Phoenix,AZ
-2024-11-08,Engine Oil 5W-30 5qt,Automotive Fluids,28.99,30.99,29.99,31.50,30.37,1,Stable pricing,Phoenix,AZ
-2024-11-08,Brake Pads - Ceramic Front,Brake Parts,64.99,69.99,67.00,71.00,68.25,1,Comp A static,Phoenix,AZ
-2024-11-08,Air Filter - Standard,Filters,18.99,21.99,18.99,22.00,20.49,1,Tied with Comp B,Phoenix,AZ
-2024-11-08,Battery - 65 Group,Batteries,124.99,139.99,124.99,142.00,133.00,1,Price reduced,Phoenix,AZ
-2024-11-08,Windshield Washer Fluid 1gal,Fluids,5.99,6.99,5.99,7.50,6.62,1,Tied with Comp B,Phoenix,AZ
-2024-11-15,Engine Oil 0W-20 5qt,Automotive Fluids,31.99,34.99,32.50,35.00,33.62,1,,Phoenix,AZ
-2024-11-15,Fuel Injector Cleaner,Additives,12.99,15.99,13.50,16.00,14.62,1,,Phoenix,AZ
-2024-11-15,Power Steering Fluid 12oz,Automotive Fluids,9.99,11.99,10.50,12.50,11.25,1,,Phoenix,AZ
-2024-11-15,Brake Fluid DOT3,Brake Parts,8.99,10.99,9.50,11.00,10.12,1,,Phoenix,AZ
-2024-11-15,Serpentine Belt,Belts & Hoses,44.99,49.99,46.00,52.00,48.00,1,,Phoenix,AZ
+Date Collected,Item Name,Category,Our Price,Competitor A Price,Competitor B Price,Competitor C Price,Online Avg Price,Price Rank (1=cheapest),Notes,City,State,Country
+2024-11-01,Engine Oil 5W-30 5qt,Automotive Fluids,28.99,31.49,29.99,32.00,30.50,1,Lowest in area,Phoenix,AZ,United States
+2024-11-01,Brake Pads - Ceramic Front,Brake Parts,64.99,69.99,62.50,71.00,67.25,2,Competitive,Phoenix,AZ,United States
+2024-11-01,Air Filter - Standard,Filters,18.99,21.99,19.50,22.00,20.75,1,Lowest in area,Phoenix,AZ,United States
+2024-11-01,Windshield Wipers 22in,Wipers,14.99,16.99,14.99,17.50,16.12,1,Tied with Comp B,Phoenix,AZ,United States
+2024-11-01,Transmission Fluid 1qt,Automotive Fluids,12.99,14.99,13.50,15.00,13.87,1,,Phoenix,AZ,United States
+2024-11-01,Coolant/Antifreeze 1gal,Automotive Fluids,19.99,21.99,20.50,22.99,21.37,1,,Phoenix,AZ,United States
+2024-11-01,Battery - 65 Group,Batteries,129.99,139.99,124.99,145.00,135.00,2,Comp B slightly cheaper,Phoenix,AZ,United States
+2024-11-01,Spark Plugs - Iridium (set 4),Ignition,38.99,42.99,39.99,44.00,41.25,1,,Phoenix,AZ,United States
+2024-11-01,Cabin Air Filter,Filters,22.99,26.99,23.50,27.00,25.12,1,,Phoenix,AZ,United States
+2024-11-01,Headlight Bulb H11,Lighting,18.99,22.99,19.99,23.50,21.37,1,,Phoenix,AZ,United States
+2024-11-08,Engine Oil 5W-30 5qt,Automotive Fluids,28.99,30.99,29.99,31.50,30.37,1,Stable pricing,Phoenix,AZ,United States
+2024-11-08,Brake Pads - Ceramic Front,Brake Parts,64.99,69.99,67.00,71.00,68.25,1,Comp A static,Phoenix,AZ,United States
+2024-11-08,Air Filter - Standard,Filters,18.99,21.99,18.99,22.00,20.49,1,Tied with Comp B,Phoenix,AZ,United States
+2024-11-08,Battery - 65 Group,Batteries,124.99,139.99,124.99,142.00,133.00,1,Price reduced,Phoenix,AZ,United States
+2024-11-08,Windshield Washer Fluid 1gal,Fluids,5.99,6.99,5.99,7.50,6.62,1,Tied with Comp B,Phoenix,AZ,United States
+2024-11-15,Engine Oil 0W-20 5qt,Automotive Fluids,31.99,34.99,32.50,35.00,33.62,1,,Phoenix,AZ,United States
+2024-11-15,Fuel Injector Cleaner,Additives,12.99,15.99,13.50,16.00,14.62,1,,Phoenix,AZ,United States
+2024-11-15,Power Steering Fluid 12oz,Automotive Fluids,9.99,11.99,10.50,12.50,11.25,1,,Phoenix,AZ,United States
+2024-11-15,Brake Fluid DOT3,Brake Parts,8.99,10.99,9.50,11.00,10.12,1,,Phoenix,AZ,United States
+2024-11-15,Serpentine Belt,Belts & Hoses,44.99,49.99,46.00,52.00,48.00,1,,Phoenix,AZ,United States

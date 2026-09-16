@@ -90,21 +90,40 @@
 
 <div class="container">
     <div class="search-bar">
-        <input type="text" id="search-input" class="input" placeholder="🔍 Search datasets by keyword, category, or location...">
+        <input type="text" id="search-input" class="input" placeholder="🔍 Search datasets by keyword, category, city, or country...">
         <button class="btn btn--primary search-btn" onclick="loadDatasets()">Search</button>
     </div>
 
     <div class="layout">
         <aside class="sidebar">
             <div class="filter-group">
+                <div class="filter-group__title">Country / Region</div>
+                <label class="checkbox-label"><input type="radio" name="country-filter" class="country-radio" value="" checked> All Countries</label>
+                <label class="checkbox-label"><input type="radio" name="country-filter" class="country-radio" value="United States"> 🇺🇸 United States</label>
+                <label class="checkbox-label"><input type="radio" name="country-filter" class="country-radio" value="United Kingdom"> 🇬🇧 United Kingdom</label>
+                <label class="checkbox-label"><input type="radio" name="country-filter" class="country-radio" value="Canada"> 🇨🇦 Canada</label>
+                <label class="checkbox-label"><input type="radio" name="country-filter" class="country-radio" value="Germany"> 🇩🇪 Germany</label>
+                <label class="checkbox-label"><input type="radio" name="country-filter" class="country-radio" value="Japan"> 🇯🇵 Japan</label>
+                <label class="checkbox-label"><input type="radio" name="country-filter" class="country-radio" value="Australia"> 🇦🇺 Australia</label>
+                <label class="checkbox-label"><input type="radio" name="country-filter" class="country-radio" value="international"> 🌐 Other International</label>
+            </div>
+
+            <div class="filter-group">
                 <div class="filter-group__title">Category</div>
                 <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Retail Sales"> Retail Sales</label>
-                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Inventory"> Inventory</label>
+                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="E-Commerce"> E-Commerce</label>
+                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Inventory"> Inventory & Supply</label>
                 <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Foot Traffic"> Foot Traffic</label>
                 <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Local Pricing"> Local Pricing</label>
-                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Customer Demographics"> Customer Demographics</label>
-                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Restaurant Orders"> Restaurant Orders</label>
-                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Services"> Services</label>
+                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Customer Demographics"> Demographics</label>
+                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Restaurant Orders"> Food & Dining</label>
+                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Services"> Local Services</label>
+                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Financial & Banking"> Financial & FinTech</label>
+                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Real Estate & Housing"> Real Estate</label>
+                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Healthcare & Wellness"> Health & Wellness</label>
+                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Marketing & Advertising"> Marketing & Ads</label>
+                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Transportation & Logistics"> Logistics & Transport</label>
+                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Hospitality & Travel"> Travel & Hospitality</label>
                 <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Other"> Other</label>
             </div>
 
@@ -203,6 +222,7 @@
     let currentParams = {
         search: '',
         category: '',
+        country: '',
         sort: 'Ending Soon',
         page: 1
     };
@@ -230,7 +250,28 @@
         
         try {
             const result = await (window.DVSupabase ? DVSupabase.datasets.list(currentParams) : Promise.resolve({data: [], error: null, count: 0}));
-            const data = result.data || [];
+            let data = result.data || [];
+            
+            // Client-side fallback filter for country if dataset list doesn't filter on server
+            if (currentParams.country) {
+                const cTarget = currentParams.country.toLowerCase();
+                if (cTarget === 'international') {
+                    data = data.filter(ds => {
+                        const loc = (ds.location || '').toLowerCase();
+                        const country = (ds.country || '').toLowerCase();
+                        return country && country !== 'us' && country !== 'united states' && !loc.includes('united states') && !loc.includes(', tx') && !loc.includes(', ca') && !loc.includes(', ny') && !loc.includes(', il');
+                    });
+                } else {
+                    data = data.filter(ds => {
+                        const loc = (ds.location || '').toLowerCase();
+                        const country = (ds.country || '').toLowerCase();
+                        return loc.includes(cTarget) || country.includes(cTarget) ||
+                            (cTarget === 'united kingdom' && (loc.includes('uk') || loc.includes('london'))) ||
+                            (cTarget === 'united states' && (loc.includes('us') || loc.includes('usa') || loc.includes(', tx') || loc.includes(', ca') || loc.includes(', ny') || loc.includes(', il') || loc.includes(', az') || loc.includes(', fl') || loc.includes(', tn') || loc.includes(', or')));
+                    });
+                }
+            }
+
             const count = result.count || data.length;
             
             if (result.error) throw result.error;
@@ -240,7 +281,7 @@
                     <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; background: #fff; border-radius: 12px; border: 1px solid #eaeaea;">
                         <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
                         <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">No datasets found</h3>
-                        <p style="color: #666; margin-bottom: 1.5rem;">No datasets found matching your search. Try different keywords.</p>
+                        <p style="color: #666; margin-bottom: 1.5rem;">No datasets found matching your search. Try different keywords or countries.</p>
                         <button class="btn btn--primary" onclick="resetFilters()">Clear Filters</button>
                     </div>
                 `;
@@ -306,8 +347,10 @@
     function resetFilters() {
         document.getElementById('search-input').value = '';
         document.querySelectorAll('.category-filter').forEach(cb => cb.checked = false);
+        const defaultCountry = document.querySelector('.country-radio[value=""]');
+        if (defaultCountry) defaultCountry.checked = true;
         document.getElementById('sort-select').value = 'Ending Soon';
-        currentParams = { search: '', category: '', sort: 'Ending Soon', page: 1 };
+        currentParams = { search: '', category: '', country: '', sort: 'Ending Soon', page: 1 };
         loadDatasets();
     }
     
@@ -321,6 +364,14 @@
             }, 400);
         });
         
+        document.querySelectorAll('.country-radio').forEach(rb => {
+            rb.addEventListener('change', (e) => {
+                currentParams.country = e.target.value;
+                currentParams.page = 1;
+                loadDatasets();
+            });
+        });
+
         document.querySelectorAll('.category-filter').forEach(cb => {
             cb.addEventListener('change', () => {
                 const selected = Array.from(document.querySelectorAll('.category-filter:checked')).map(cb => cb.value);
