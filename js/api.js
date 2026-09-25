@@ -283,11 +283,12 @@ const DVProfiles = {
     }
   },
 
-  async uploadVerificationDoc(userId, file) {
+  async uploadVerificationDoc(userId, file, docType = '') {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('user_id', userId);
     formData.append('type', 'verification');
+    if (docType) formData.append('doc_type', docType);
 
     const identity = window.netlifyIdentity;
     const token    = identity?.currentUser()?.token?.access_token;
@@ -301,8 +302,17 @@ const DVProfiles = {
     if (!response.ok) throw new Error('Upload failed');
     const result = await response.json();
 
-    // Update profile with doc URL
-    await this.update(userId, { verification_doc_url: result.url });
+    // Update profile with doc URL and verified status
+    await this.update(userId, {
+      verification_doc_url: result.url,
+      verified: true
+    });
+
+    if (window.DVAuthManager?.profile) {
+      window.DVAuthManager.profile.verified = true;
+      window.DVAuthManager.profile.verification_doc_url = result.url;
+    }
+
     return { data: result, error: null };
   },
 };

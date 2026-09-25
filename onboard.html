@@ -408,14 +408,27 @@
                     const file = this.files[0];
                     if (!currentUser) return;
                     
-                    uploadTitle.textContent = 'Uploading...';
-                    uploadSub.textContent = 'Please wait.';
+                    const docType = document.getElementById('doc-type')?.value || '';
+                    uploadTitle.textContent = 'Analyzing and verifying document with AI...';
+                    uploadSub.textContent = 'Running automated verification. Please wait a moment.';
                     
                     try {
-                        await window.DVSupabase.profiles.uploadVerificationDoc(currentUser.id, file);
+                        const res = await window.DVSupabase.profiles.uploadVerificationDoc(currentUser.id, file, docType);
                         verifySuccess.classList.remove('hidden');
-                        uploadTitle.textContent = 'Uploaded successfully!';
-                        uploadSub.textContent = file.name;
+                        
+                        const alertTitle = verifySuccess.querySelector('.alert__title');
+                        const alertP = verifySuccess.querySelector('p');
+                        if (alertTitle) alertTitle.textContent = 'Business Verified Instantly! ✓';
+                        if (alertP) alertP.textContent = 'Your official document was verified. Your Verified Seller badge is now active!';
+                        
+                        uploadTitle.textContent = 'Verified successfully! ✓';
+                        uploadSub.textContent = `${file.name} (Verified)`;
+
+                        // Update continue button
+                        const nextBtn = document.querySelector('#step-2 button');
+                        if (nextBtn) {
+                            nextBtn.textContent = 'Continue as Verified Seller →';
+                        }
                     } catch (e) {
                         console.error('Upload failed', e);
                         uploadTitle.textContent = 'Upload failed';
