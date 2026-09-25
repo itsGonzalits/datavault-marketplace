@@ -303,13 +303,14 @@ const DVProfiles = {
     const result = await response.json();
 
     // Update profile with doc URL and verified status
+    const isVerified = Boolean(result.verified);
     await this.update(userId, {
       verification_doc_url: result.url,
-      verified: true
+      verified: isVerified
     });
 
     if (window.DVAuthManager?.profile) {
-      window.DVAuthManager.profile.verified = true;
+      window.DVAuthManager.profile.verified = isVerified;
       window.DVAuthManager.profile.verification_doc_url = result.url;
     }
 

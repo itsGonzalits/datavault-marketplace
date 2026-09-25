@@ -88,8 +88,10 @@ exports.handler = async (event, context) => {
 
     // Automated AI Document Verification for Sellers
     let verification = null;
+    let isAccepted = false;
     if (uploadType === 'verification') {
       verification = await verifyDocumentWithAI(fileBuffer, fileName, docType, user);
+      isAccepted = verification ? verification.is_valid !== false : true;
 
       // Automatically update the seller's profile in the 'profiles' Netlify Blobs store
       try {
@@ -97,10 +99,10 @@ exports.handler = async (event, context) => {
         const rawProfile = await profilesStore.get(user.sub);
         const profile = rawProfile ? JSON.parse(rawProfile) : { id: user.sub, email: user.email };
 
-        profile.verified = true;
-        profile.verification_status = 'verified';
+        profile.verified = isAccepted;
+        profile.verification_status = isAccepted ? 'verified' : 'rejected';
         profile.verification_doc_url = downloadUrl;
-        profile.verified_at = new Date().toISOString();
+        profile.verified_at = isAccepted ? new Date().toISOString() : null;
         profile.verification_details = verification;
 
         await profilesStore.set(user.sub, JSON.stringify(profile));
@@ -115,7 +117,7 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({
         path: fileKey,
         url: downloadUrl,
-        verified: uploadType === 'verification' ? true : false,
+        verified: isAccepted,
         verification
       }),
     };

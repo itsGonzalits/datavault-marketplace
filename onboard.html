@@ -418,16 +418,22 @@
                         
                         const alertTitle = verifySuccess.querySelector('.alert__title');
                         const alertP = verifySuccess.querySelector('p');
-                        if (alertTitle) alertTitle.textContent = 'Business Verified Instantly! ✓';
-                        if (alertP) alertP.textContent = 'Your official document was verified. Your Verified Seller badge is now active!';
-                        
-                        uploadTitle.textContent = 'Verified successfully! ✓';
-                        uploadSub.textContent = `${file.name} (Verified)`;
-
-                        // Update continue button
                         const nextBtn = document.querySelector('#step-2 button');
-                        if (nextBtn) {
-                            nextBtn.textContent = 'Continue as Verified Seller →';
+
+                        if (res.data?.verified) {
+                            verifySuccess.className = 'alert alert--success mb-6';
+                            if (alertTitle) alertTitle.textContent = 'Business Verified Instantly! ✓';
+                            if (alertP) alertP.textContent = res.data?.verification?.note || 'Your official document was verified by AI. Your Verified Seller badge is now active!';
+                            uploadTitle.textContent = 'Verified successfully! ✓';
+                            uploadSub.textContent = `${file.name} (Verified)`;
+                            if (nextBtn) nextBtn.textContent = 'Continue as Verified Seller →';
+                        } else {
+                            verifySuccess.className = 'alert alert--warning mb-6';
+                            if (alertTitle) alertTitle.textContent = 'Document Verification Pending ⚠️';
+                            if (alertP) alertP.textContent = (res.data?.verification?.note || 'Document could not be verified automatically.') + ' You can upload a clearer copy or continue and our team will review it manually within 24 hours.';
+                            uploadTitle.textContent = 'Click to try another file';
+                            uploadSub.textContent = 'Upload a clear PDF, JPG, or PNG';
+                            if (nextBtn) nextBtn.textContent = 'Continue Anyway →';
                         }
                     } catch (e) {
                         console.error('Upload failed', e);
