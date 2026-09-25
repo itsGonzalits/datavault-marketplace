@@ -74,11 +74,17 @@ exports.handler = async (event, context) => {
 
   /* ── Fetch file from Netlify Blobs ───────────────────────── */
   try {
-    // Determine which store to use based on file path prefix/suffix
-    const storeName = key.startsWith('verification/') ? 'verification-docs' : 'encrypted-files';
-    const store     = getStore({ name: storeName, consistency: 'strong' });
+    // Determine which store to use based on token payload or file path prefix
+    let storeName = payload.store || (key.startsWith('verification/') ? 'verification-docs' : 'encrypted-files');
+    let store     = getStore({ name: storeName, consistency: 'strong' });
+    let blob      = await store.get(key, { type: 'arrayBuffer' });
 
-    const blob = await store.get(key, { type: 'arrayBuffer' });
+    // Fallback: check alternate store if not found in primary store
+    if (!blob) {
+      const altStoreName = storeName === 'verification-docs' ? 'encrypted-files' : 'verification-docs';
+      const altStore     = getStore({ name: altStoreName, consistency: 'strong' });
+      blob = await altStore.get(key, { type: 'arrayBuffer' });
+    }
 
     if (!blob) {
       return {

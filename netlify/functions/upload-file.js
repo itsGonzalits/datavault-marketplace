@@ -83,7 +83,7 @@ exports.handler = async (event, context) => {
 
     // Generate a signed URL (token-protected, 48-hour expiry)
     // For Netlify Blobs, we use our own endpoint to serve files securely
-    const downloadToken = Buffer.from(JSON.stringify({ key: fileKey, exp: Date.now() + 48 * 3600 * 1000, uid: user.sub })).toString('base64url');
+    const downloadToken = Buffer.from(JSON.stringify({ key: fileKey, exp: Date.now() + 48 * 3600 * 1000, uid: user.sub, store: storeName })).toString('base64url');
     const downloadUrl   = `/api/download?token=${downloadToken}`;
 
     // Automated AI Document Verification for Sellers
