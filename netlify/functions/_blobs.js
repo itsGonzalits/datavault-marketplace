@@ -29,6 +29,50 @@ function connectBlobs(event) {
   }
 }
 
+const inMemoryStores = new Map();
+
+class MemoryStore {
+  constructor(name) {
+    this.name = name;
+    if (!inMemoryStores.has(name)) {
+      inMemoryStores.set(name, new Map());
+    }
+    this.items = inMemoryStores.get(name);
+  }
+
+  async get(key, options = {}) {
+    const val = this.items.get(key);
+    if (val === undefined || val === null) return null;
+    if (options.type === 'arrayBuffer') {
+      if (Buffer.isBuffer(val)) {
+        return val.buffer.slice(val.byteOffset, val.byteOffset + val.byteLength);
+      }
+      return Buffer.from(val).buffer;
+    }
+    if (Buffer.isBuffer(val)) {
+      return val.toString('utf8');
+    }
+    return typeof val === 'string' ? val : JSON.stringify(val);
+  }
+
+  async set(key, value) {
+    this.items.set(key, value);
+  }
+
+  async setJSON(key, value) {
+    this.items.set(key, JSON.stringify(value));
+  }
+
+  async list() {
+    const keys = Array.from(this.items.keys());
+    return { blobs: keys.map(k => ({ key: k })) };
+  }
+
+  async delete(key) {
+    this.items.delete(key);
+  }
+}
+
 /**
  * Safely gets a Blobs store with strong consistency by default,
  * using either injected Lambda context or environment variables.
@@ -47,11 +91,23 @@ function getStore(options) {
     opts.token = token;
   }
 
-  return rawGetStore(opts);
+  try {
+    return rawGetStore(opts);
+  } catch (err) {
+    if (
+      err.name === 'MissingBlobsEnvironmentError' ||
+      err.message?.includes('environment has not been configured')
+    ) {
+      return new MemoryStore(opts.name);
+    }
+    throw err;
+  }
 }
 
 module.exports = {
   getStore,
   connectBlobs,
   connectLambda,
+  MemoryStore,
 };
+

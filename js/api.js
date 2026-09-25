@@ -165,7 +165,11 @@ const DVDatasets = {
     formData.append('name', originalName);
 
     const identity = window.netlifyIdentity;
-    const token    = identity?.currentUser()?.token?.access_token;
+    const user     = identity?.currentUser();
+    let token      = user?.token?.access_token;
+    if (user && typeof user.jwt === 'function') {
+      try { token = await user.jwt(); } catch { token = user?.token?.access_token; }
+    }
 
     const response = await fetch(`${API_BASE}/upload-file`, {
       method: 'POST',
@@ -291,7 +295,11 @@ const DVProfiles = {
     if (docType) formData.append('doc_type', docType);
 
     const identity = window.netlifyIdentity;
-    const token    = identity?.currentUser()?.token?.access_token;
+    const user     = identity?.currentUser();
+    let token      = user?.token?.access_token;
+    if (user && typeof user.jwt === 'function') {
+      try { token = await user.jwt(); } catch { token = user?.token?.access_token; }
+    }
 
     const response = await fetch(`${API_BASE}/upload-file`, {
       method: 'POST',

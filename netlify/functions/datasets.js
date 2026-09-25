@@ -129,7 +129,7 @@ exports.handler = async (event, context) => {
         reserve_price:    body.reserve_price,
         current_top_bid:  0,
         bid_count:        0,
-        auction_end:      body.auction_end,
+        auction_end:      body.auction_end || new Date(Date.now() + (body.auction_days || 7) * 86400000).toISOString(),
         status:           'active',
         file_path:        body.file_path    || null,
         encryption_key:   body.encryption_key || null,
