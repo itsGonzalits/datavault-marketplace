@@ -12,7 +12,7 @@
    - User must be authenticated (Netlify Identity JWT) OR token uid matches the query
    ============================================================ */
 
-const { getStore } = require('@netlify/blobs');
+const { getStore, connectBlobs } = require('./_blobs');
 
 const CORS = {
   'Access-Control-Allow-Origin':  '*',
@@ -24,6 +24,8 @@ exports.handler = async (event, context) => {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: CORS, body: '' };
   }
+
+  connectBlobs(event);
 
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'Method not allowed' }) };

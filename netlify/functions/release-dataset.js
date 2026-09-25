@@ -14,7 +14,7 @@
    Migrated from Supabase → Netlify Blobs.
    ============================================================ */
 
-const { getStore } = require('@netlify/blobs');
+const { getStore, connectBlobs } = require('./_blobs');
 
 const HEADERS = {
   'Access-Control-Allow-Origin':  '*',
@@ -26,6 +26,8 @@ exports.handler = async (event, context) => {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: HEADERS, body: '' };
   }
+
+  connectBlobs(event);
 
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, headers: HEADERS, body: JSON.stringify({ error: 'Method Not Allowed' }) };

@@ -9,9 +9,11 @@
    ============================================================ */
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const { getStore } = require('@netlify/blobs');
+const { getStore, connectBlobs } = require('./_blobs');
 
 exports.handler = async (event) => {
+  connectBlobs(event);
+
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }

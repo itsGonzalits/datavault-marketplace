@@ -3,7 +3,7 @@
    GET → platform-wide statistics
    ============================================================ */
 
-const { getStore } = require('@netlify/blobs');
+const { getStore, connectBlobs } = require('./_blobs');
 
 const CORS = {
   'Access-Control-Allow-Origin':  '*',
@@ -15,6 +15,8 @@ exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: CORS, body: '' };
   }
+
+  connectBlobs(event);
 
   try {
     const datasetsStore     = getStore({ name: 'datasets',     consistency: 'strong' });
