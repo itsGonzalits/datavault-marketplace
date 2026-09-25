@@ -277,17 +277,22 @@
             if (result.error) throw result.error;
             
             if (data.length === 0) {
-                grid.innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; background: #fff; border-radius: 12px; border: 1px solid #eaeaea;">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
-                        <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">No datasets found</h3>
-                        <p style="color: #666; margin-bottom: 1.5rem;">No datasets found matching your search. Try different keywords or countries.</p>
-                        <button class="btn btn--primary" onclick="resetFilters()">Clear Filters</button>
-                    </div>
-                `;
-                countDisplay.textContent = 'Showing 0 datasets';
-                pagination.style.display = 'none';
-                return;
+                const hasFilters = Boolean(currentParams.search || currentParams.country || (currentParams.category && currentParams.category !== 'all'));
+                if (!hasFilters && window.DVSupabase?.DEMO_DATA?.datasets?.length > 0) {
+                    data = window.DVSupabase.DEMO_DATA.datasets;
+                } else {
+                    grid.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; background: #fff; border-radius: 12px; border: 1px solid #eaeaea;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+                            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">No datasets found</h3>
+                            <p style="color: #666; margin-bottom: 1.5rem;">No datasets found matching your search. Try different keywords or countries.</p>
+                            <button class="btn btn--primary" onclick="resetFilters()">Clear Filters</button>
+                        </div>
+                    `;
+                    countDisplay.textContent = 'Showing 0 datasets';
+                    pagination.style.display = 'none';
+                    return;
+                }
             }
             
             grid.innerHTML = data.map(ds => {
