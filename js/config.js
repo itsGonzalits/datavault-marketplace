@@ -36,5 +36,5 @@ window.DV_CONFIG = {
   /* ── Site URL ───────────────────────────────────────────────
      Used for Netlify Identity redirect URLs.
      ----------------------------------------------------------- */
-  SITE_URL: 'https://datavault-marketplace.netlify.app',
+  SITE_URL: 'https://datavaultmarket.com',
 };

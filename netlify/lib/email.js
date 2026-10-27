@@ -7,7 +7,7 @@
    ============================================================ */
 
 function siteUrl() {
-  return (process.env.URL || 'https://datavault-marketplace.netlify.app').replace(/\/$/, '');
+  return (process.env.URL || 'https://datavaultmarket.com').replace(/\/$/, '');
 }
 
 function escapeHtml(str) {
@@ -34,6 +34,7 @@ function layout({ heading, paragraphs = [], button }) {
       ${body}${btn}
     </div>
     <div style="padding:16px 28px;border-top:1px solid #E7E5E4;color:#78716C;font-size:13px;">
+      DataVault is operated by ITSGONZALITS LLC, a Florida limited liability company.<br>
       Questions? Just reply to this email or visit <a href="${siteUrl()}/faq.html" style="color:#0D9488;">our Help Center</a>.
     </div>
   </div></body></html>`;
@@ -50,7 +51,7 @@ async function sendEmail({ to, subject, heading, paragraphs, button }) {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM || 'DataVault <noreply@datavault-marketplace.com>',
+        from: process.env.RESEND_FROM || 'DataVault <noreply@datavaultmarket.com>',
         to: Array.isArray(to) ? to : [to],
         subject,
         html: layout({ heading, paragraphs, button }),
