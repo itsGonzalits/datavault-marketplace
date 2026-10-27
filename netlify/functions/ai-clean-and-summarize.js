@@ -25,6 +25,11 @@ exports.handler = async (event, context) => {
     return { statusCode: 405, headers: HEADERS, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
+  // Signed-in sellers only — this calls a paid AI API
+  if (!context.clientContext?.user) {
+    return { statusCode: 401, headers: HEADERS, body: JSON.stringify({ error: 'Please sign in first.' }) };
+  }
+
   try {
     const { textContent, base64Data, mimeType, originalName = 'dataset.csv' } = JSON.parse(event.body || '{}');
 
@@ -74,7 +79,7 @@ exports.handler = async (event, context) => {
             highlights: [
               `Contains ${rowCount.toLocaleString()} structured records for market research.`,
               `Fields include: ${headersDetected.slice(0, 4).join(', ')}.`,
-              `Fully anonymized dataset with zero PII (Personally Identifiable Information).`
+              `Personal details such as customer names, emails and phone numbers were removed automatically.`
             ],
             columns: headersDetected.map(h => ({
               name: h,
@@ -169,7 +174,7 @@ Return ONLY a valid JSON object matching this schema:
         highlights: [
           `Transcribed table containing ${Math.max(0, lines.length - 1)} records.`,
           `Fields include: ${headers.slice(0, 4).join(', ')}.`,
-          `Fully anonymized dataset with zero PII.`
+          `Personal details were removed automatically.`
         ],
         columns: headers.map(h => ({
           name: h,
@@ -183,37 +188,57 @@ Return ONLY a valid JSON object matching this schema:
   };
 }
 
-/* ── Rule-Based High-Speed PII Scrubber ── */
+/* ── Rule-Based PII Scrubber ──
+   1. Whole columns whose header looks personal (name, email, phone,
+      address, birthday, card, SSN…) are blanked out.
+   2. Every other cell is scanned for emails, phones, SSNs and cards. */
+const PERSONAL_HEADER = /(^|[^a-z])(first|last|full|customer|client|patient|guest|member|contact|employee|owner)?[ _-]?(name|e-?mail|phone|mobile|cell|tel|address|street|addr|dob|birth|ssn|social|passport|license|licence|card|iban|account[ _-]?(no|num|number))([^a-z]|$)/i;
+const SAFE_HEADER     = /(product|item|store|business|company|category|brand|vendor|city|state|country|region|zip|postal)[ _-]?name/i;
+
+function splitCsvLine(line) {
+  const out = []; let cur = ''; let q = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { if (q && line[i + 1] === '"') { cur += '"'; i++; } else q = !q; }
+    else if (ch === ',' && !q) { out.push(cur); cur = ''; }
+    else cur += ch;
+  }
+  out.push(cur);
+  return out;
+}
+
+function joinCsvLine(cells) {
+  return cells.map(c => /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c).join(',');
+}
+
 function scrubPII(text) {
   let count = 0;
   const lines = text.split(/\r?\n/);
   if (lines.length === 0) return { cleanedText: text, piiCount: 0, headersDetected: [] };
 
-  const firstLine = lines[0];
-  const headers = firstLine.split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
+  const headers = splitCsvLine(lines[0]).map(h => h.trim().replace(/^["']|["']$/g, ''));
+  const personalCols = new Set(headers
+    .map((h, i) => (PERSONAL_HEADER.test(h) && !SAFE_HEADER.test(h)) ? i : -1)
+    .filter(i => i >= 0));
 
-  // RegEx Patterns for PII
-  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-  const phoneRegex = /(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
-  const ssnRegex = /\b\d{3}-\d{2}-\d{4}\b/g;
-  const creditCardRegex = /\b(?:\d[ -]*?){13,16}\b/g;
+  const emailRegex      = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+  const phoneRegex      = /(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}\b/g;
+  const ssnRegex        = /\b\d{3}-\d{2}-\d{4}\b/g;
+  const creditCardRegex = /\b(?:\d{4}[ -]?){3}\d{1,4}\b/g;
 
-  // Process rows
+  const scrubCell = (cell) => cell
+    .replace(emailRegex,      () => { count++; return '[REMOVED]'; })
+    .replace(ssnRegex,        () => { count++; return '[REMOVED]'; })
+    .replace(creditCardRegex, () => { count++; return '[REMOVED]'; })
+    .replace(phoneRegex,      () => { count++; return '[REMOVED]'; });
+
   const cleanedLines = lines.map((line, idx) => {
-    if (idx === 0) return line; // Preserve header structure
-
-    let updatedLine = line;
-
-    // Redact Emails
-    updatedLine = updatedLine.replace(emailRegex, () => { count++; return '[ANONYMIZED_EMAIL]'; });
-    // Redact Phones
-    updatedLine = updatedLine.replace(phoneRegex, () => { count++; return '[ANONYMIZED_PHONE]'; });
-    // Redact SSNs
-    updatedLine = updatedLine.replace(ssnRegex, () => { count++; return '[REDACTED_SSN]'; });
-    // Redact Credit Cards
-    updatedLine = updatedLine.replace(creditCardRegex, () => { count++; return '[REDACTED_CARD]'; });
-
-    return updatedLine;
+    if (idx === 0 || !line.trim()) return line;
+    const cells = splitCsvLine(line).map((cell, i) => {
+      if (personalCols.has(i)) { if (cell.trim()) count++; return cell.trim() ? '[REMOVED]' : cell; }
+      return scrubCell(cell);
+    });
+    return joinCsvLine(cells);
   });
 
   return {
@@ -237,7 +262,7 @@ async function generateGeminiSummary(fileName, headers, sample, totalRows) {
         highlights: [
           `Contains ${totalRows.toLocaleString()} structured records for market research.`,
           `Fields include: ${headers.slice(0, 4).join(', ')}.`,
-          `Fully anonymized dataset with zero PII (Personally Identifiable Information).`
+          `Personal details such as customer names, emails and phone numbers were removed automatically.`
         ],
         columns: headers.map(h => ({
           name: h,
@@ -263,7 +288,7 @@ ${sample}
 Return ONLY a valid JSON object matching this schema:
 {
   "title": "A compelling 4-8 word title describing the dataset (e.g. Pacific Northwest Retail Sales & Foot Traffic 2023-2024)",
-  "description": "A clear 2-3 paragraph summary detailing what data is inside, why it is valuable to market researchers, and confirming zero-knowledge PII anonymization.",
+  "description": "A clear 2-3 paragraph summary detailing what data is inside, why it is valuable to market researchers, and noting that personal customer details were removed.",
   "category": "One of: Retail Sales, Inventory, Foot Traffic, Local Pricing, Customer Demographics, Restaurant Orders, Services, Other",
   "ai_analysis": {
     "highlights": [
@@ -309,7 +334,7 @@ Return ONLY a valid JSON object matching this schema:
       highlights: [
         `Contains ${totalRows.toLocaleString()} structured records for market research.`,
         `Fields include: ${headers.slice(0, 4).join(', ')}.`,
-        `Fully anonymized dataset with zero PII (Personally Identifiable Information).`
+        `Personal details such as customer names, emails and phone numbers were removed automatically.`
       ],
       columns: headers.map(h => ({
         name: h,

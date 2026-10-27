@@ -1,61 +1,44 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+/* ============================================================
+   Netlify Function: /create-payment-intent
+   POST { datasetId, amount }   (amount in DOLLARS)
 
-const headers = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-};
+   Creates a card HOLD (manual capture) for a bid. Nothing is
+   charged unless this bid wins when the auction closes.
+   ============================================================ */
 
-exports.handler = async (event, context) => {
-  // Handle CORS preflight
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
-  }
+const { getStore, connectBlobs, getJSON } = require('../lib/blobs');
+const { json, parseBody, getUser, cleanText, handler, httpError } = require('../lib/http');
+const { stripe, minNextBid, isOpenForBids, round2 } = require('../lib/market');
 
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed' }) };
-  }
+exports.handler = handler(async (event, context) => {
+  if (event.httpMethod !== 'POST') return json(405, { error: 'Method not allowed' });
+  connectBlobs(event);
 
-  try {
-    const { amount, datasetId, buyerEmail, captureMethod = 'manual' } = JSON.parse(event.body);
+  const user = getUser(context);
+  if (!user) throw httpError(401, 'Please sign in to bid.');
 
-    if (!amount || !datasetId || !buyerEmail) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: 'Missing required parameters: amount, datasetId, buyerEmail' })
-      };
-    }
+  const body      = parseBody(event);
+  const datasetId = cleanText(body.datasetId, 64);
+  const amount    = round2(body.amount);
+  if (!datasetId || !(amount > 0)) throw httpError(400, 'Please enter a bid amount.');
 
-    // Create a PaymentIntent with the given amount and capture_method
-    // capture_method: 'manual' authorizes the funds without capturing them immediately
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Stripe expects amounts in cents
-      currency: 'usd',
-      capture_method: captureMethod, 
-      receipt_email: buyerEmail,
-      metadata: {
-        datasetId,
-        buyerEmail,
-        source: 'datavault_bid'
-      }
-    });
+  const ds = await getJSON(getStore('datasets'), datasetId);
+  if (!ds) throw httpError(404, 'This listing could not be found.');
+  if (!isOpenForBids(ds)) throw httpError(400, 'Sorry — this auction has already ended.');
+  if (ds.seller_id === user.sub) throw httpError(400, 'You can\'t bid on your own listing.');
+  const min = minNextBid(ds);
+  if (amount < min) throw httpError(400, `Your bid must be at least $${min.toFixed(2)}.`);
+  if (amount > 999999) throw httpError(400, 'That bid is too large.');
 
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({
-        clientSecret: paymentIntent.client_secret,
-        paymentIntentId: paymentIntent.id,
-        amount
-      })
-    };
-  } catch (error) {
-    console.error('Error creating PaymentIntent:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: error.message })
-    };
-  }
-};
+  const pi = await stripe().paymentIntents.create({
+    amount:               Math.round(amount * 100),
+    currency:             'usd',
+    capture_method:       'manual',
+    payment_method_types: ['card'], // cards + Apple Pay / Google Pay wallets
+    receipt_email:        user.email,
+    description:          `DataVault bid: ${String(ds.title).slice(0, 80)}`,
+    metadata:             { datasetId, buyerId: user.sub, buyerEmail: user.email, source: 'datavault_bid' },
+  });
+
+  return json(200, { clientSecret: pi.client_secret, paymentIntentId: pi.id, amount });
+});

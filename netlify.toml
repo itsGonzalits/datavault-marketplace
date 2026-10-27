@@ -2,6 +2,13 @@
   functions = "netlify/functions"
   publish = "."
 
+[functions]
+  node_bundler = "esbuild"
+
+# Closes finished auctions (charges the winner / releases holds)
+[functions."close-expired-auctions"]
+  schedule = "*/15 * * * *"
+
 # Security headers on all pages
 [[headers]]
   for = "/*"
@@ -10,24 +17,22 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
-    Content-Security-Policy = "default-src 'self' https://identity.netlify.com https://js.stripe.com https://fonts.googleapis.com https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://identity.netlify.com https://js.stripe.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://*.googleusercontent.com; connect-src 'self' https://api.stripe.com https://*.netlify.app https://*.netlify.com https://netlify-identity.netlify.com https://api.resend.com"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://identity.netlify.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.googleusercontent.com https://*.stripe.com; frame-src https://js.stripe.com https://hooks.stripe.com https://identity.netlify.com; connect-src 'self' https://api.stripe.com https://*.netlify.app https://*.netlify.com"
 
-# API rewrite rule to Netlify Functions
+# Short API paths → Netlify Functions
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
+
+# Old buyer dashboard now lives inside the main dashboard
+[[redirects]]
+  from = "/buyer-dashboard.html"
+  to = "/dashboard.html#buying"
+  status = 301
 
 # 404 fallback
 [[redirects]]
   from = "/*"
   to = "/404.html"
   status = 404
-
-# CORS for Netlify functions (belt-and-suspenders alongside function-level CORS)
-[[headers]]
-  for = "/.netlify/functions/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
-    Access-Control-Allow-Methods = "GET, POST, PATCH, DELETE, OPTIONS"
-    Access-Control-Allow-Headers = "Content-Type, Authorization"

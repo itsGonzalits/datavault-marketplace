@@ -1,111 +1,119 @@
 /* ============================================================
    Netlify Function: /bids
-   GET  ?dataset_id=xxx → bids for a dataset
-   GET  ?my_bids=true   → current user's bids
-   POST (body)          → place a bid
+   GET  ?dataset_id=xxx → bid history for a listing (anonymous)
+   GET  ?mine=true      → the signed-in buyer's bids
+   POST { dataset_id, payment_intent_id }
+        → record a bid. The amount comes from the Stripe card hold,
+          which must already be authorized for this buyer + listing.
    ============================================================ */
 
-const { getStore, connectBlobs } = require('./_blobs');
+const { getStore, connectBlobs, getJSON, setJSON, listJSON } = require('../lib/blobs');
+const { json, parseBody, getUser, cleanText, generateId, handler, httpError } = require('../lib/http');
+const { stripe, minNextBid, isOpenForBids, publicBids, publicDataset, releaseHold, notifyOutbid, round2 } = require('../lib/market');
 
-const CORS = {
-  'Access-Control-Allow-Origin':  '*',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-};
-
-exports.handler = async (event, context) => {
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers: CORS, body: '' };
-  }
-
+exports.handler = handler(async (event, context) => {
   connectBlobs(event);
+  const bidsStore     = getStore('bids');
+  const datasetsStore = getStore('datasets');
+  const user = getUser(context);
+  const q = event.queryStringParameters || {};
 
-  try {
-    const bidsStore    = getStore({ name: 'bids',    consistency: 'strong' });
-    const datasetsStore = getStore({ name: 'datasets', consistency: 'strong' });
-    const q = event.queryStringParameters || {};
-
-    /* ── GET ── */
-    if (event.httpMethod === 'GET') {
-
-      // All bids for a dataset
-      if (q.dataset_id) {
-        const raw = await bidsStore.get(q.dataset_id);
-        const bids = raw ? JSON.parse(raw) : [];
-        return json(200, { bids: bids.sort((a, b) => b.amount - a.amount) });
-      }
-
-      // Current user's bids (across all datasets)
-      if (q.my_bids && context.clientContext?.user) {
-        const userId = context.clientContext.user.sub;
-        const { blobs } = await bidsStore.list();
-        const all = await Promise.all(blobs.map(async b => {
-          const raw = await bidsStore.get(b.key);
-          return raw ? JSON.parse(raw) : [];
-        }));
-        const myBids = all.flat().filter(bid => bid.buyer_id === userId);
-        return json(200, { bids: myBids.sort((a, b) => b.created_at.localeCompare(a.created_at)) });
-      }
-
-      return json(400, { error: 'dataset_id or my_bids required' });
+  if (event.httpMethod === 'GET') {
+    if (q.dataset_id) {
+      const bids = (await getJSON(bidsStore, q.dataset_id)) || [];
+      return json(200, { bids: publicBids(bids, user?.sub) });
     }
 
-    /* ── POST — Place bid ── */
-    if (event.httpMethod === 'POST') {
-      const user = context.clientContext?.user;
-      if (!user) return json(401, { error: 'Must be logged in to bid' });
-
-      const body = JSON.parse(event.body || '{}');
-      const { dataset_id, amount, payment_intent_id } = body;
-
-      if (!dataset_id || !amount) return json(400, { error: 'dataset_id and amount required' });
-
-      // Validate against dataset
-      const dsRaw = await datasetsStore.get(dataset_id);
-      if (!dsRaw) return json(404, { error: 'Dataset not found' });
-      const dataset = JSON.parse(dsRaw);
-
-      if (dataset.status !== 'active') return json(400, { error: 'Auction is not active' });
-      if (new Date(dataset.auction_end) < new Date()) return json(400, { error: 'Auction has ended' });
-      if (amount <= (dataset.current_top_bid || dataset.starting_bid || 0) - 0.01)
-        return json(400, { error: `Bid must exceed current top bid of $${dataset.current_top_bid}` });
-
-      // Save bid
-      const existing = await bidsStore.get(dataset_id);
-      const bids = existing ? JSON.parse(existing) : [];
-      const bid = {
-        id:                generateId(),
-        dataset_id,
-        buyer_id:          user.sub,
-        buyer_email:       user.email,
-        amount:            parseFloat(amount),
-        payment_intent_id: payment_intent_id || null,
-        status:            'active',
-        created_at:        new Date().toISOString(),
-      };
-      bids.push(bid);
-      await bidsStore.set(dataset_id, JSON.stringify(bids));
-
-      // Update dataset's top bid
-      dataset.current_top_bid = parseFloat(amount);
-      dataset.bid_count = bids.filter(b => b.status === 'active').length;
-      await datasetsStore.set(dataset_id, JSON.stringify(dataset));
-
-      return json(201, { bid });
+    if (q.mine) {
+      if (!user) throw httpError(401, 'Please sign in.');
+      const { blobs } = await bidsStore.list();
+      const mine = [];
+      for (const b of blobs) {
+        const list = (await getJSON(bidsStore, b.key)) || [];
+        const own = list.filter(bid => bid.buyer_id === user.sub && bid.status !== 'replaced');
+        if (!own.length) continue;
+        const ds = await getJSON(datasetsStore, b.key);
+        const pub = ds ? publicDataset(ds, user.sub) : null;
+        for (const bid of own) {
+          mine.push({
+            id:              bid.id,
+            dataset_id:      bid.dataset_id,
+            amount:          bid.amount,
+            status:          bid.status,
+            created_at:      bid.created_at,
+            dataset_title:   pub?.title || 'Listing removed',
+            dataset_status:  pub?.status || 'ended',
+            current_top_bid: pub?.current_top_bid || 0,
+            min_next_bid:    pub?.min_next_bid || 0,
+            auction_end:     pub?.auction_end || null,
+          });
+        }
+      }
+      mine.sort((a, b) => b.created_at.localeCompare(a.created_at));
+      return json(200, { bids: mine });
     }
 
-    return json(405, { error: 'Method not allowed' });
-
-  } catch (err) {
-    console.error('[bids]', err);
-    return json(500, { error: err.message });
+    throw httpError(400, 'dataset_id or mine is required');
   }
-};
 
-function json(status, body) {
-  return { statusCode: status, headers: { ...CORS, 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
-}
+  if (event.httpMethod === 'POST') {
+    if (!user) throw httpError(401, 'Please sign in to bid.');
+    const body = parseBody(event);
+    const datasetId       = cleanText(body.dataset_id, 64);
+    const paymentIntentId = cleanText(body.payment_intent_id, 100);
+    if (!datasetId || !paymentIntentId) throw httpError(400, 'dataset_id and payment_intent_id are required');
 
-function generateId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
-}
+    const ds = await getJSON(datasetsStore, datasetId);
+    if (!ds) throw httpError(404, 'This listing could not be found.');
+
+    const bids = (await getJSON(bidsStore, datasetId)) || [];
+    if (bids.some(b => b.payment_intent_id === paymentIntentId)) {
+      return json(200, { bid: bids.find(b => b.payment_intent_id === paymentIntentId), dataset: publicDataset(ds, user.sub) });
+    }
+
+    // The card hold is the source of truth for who is bidding and how much
+    const pi = await stripe().paymentIntents.retrieve(paymentIntentId).catch(() => null);
+    const amount = round2((pi?.amount || 0) / 100);
+    const piOk = pi && pi.status === 'requires_capture'
+      && pi.metadata?.datasetId === datasetId
+      && pi.metadata?.buyerId === user.sub;
+    if (!piOk) throw httpError(400, 'We could not confirm the hold on your card. Please try again.');
+
+    const reject = async (msg) => { await releaseHold(pi.id); throw httpError(400, msg); };
+    if (!isOpenForBids(ds))           await reject('Sorry — this auction has already ended. Your card was not charged.');
+    if (ds.seller_id === user.sub)    await reject('You can\'t bid on your own listing.');
+    if (amount < minNextBid(ds))      await reject(`Someone just bid higher. The new minimum is $${minNextBid(ds).toFixed(2)} — your card was not charged.`);
+
+    const previous = bids.filter(b => b.status === 'active');
+    const bid = {
+      id:                generateId(),
+      dataset_id:        datasetId,
+      buyer_id:          user.sub,
+      buyer_email:       user.email,
+      amount,
+      payment_intent_id: pi.id,
+      status:            'active',
+      created_at:        new Date().toISOString(),
+    };
+    for (const p of previous) p.status = p.buyer_id === user.sub ? 'replaced' : 'outbid';
+    bids.push(bid);
+    await setJSON(bidsStore, datasetId, bids);
+
+    ds.current_top_bid = amount;
+    ds.bid_count = bids.filter(b => b.status !== 'replaced').length;
+    // Anti-sniping: a bid in the last 5 minutes extends the auction by 5 minutes
+    const msLeft = new Date(ds.auction_end).getTime() - Date.now();
+    if (msLeft < 5 * 60000) ds.auction_end = new Date(Date.now() + 5 * 60000).toISOString();
+    await setJSON(datasetsStore, datasetId, ds);
+
+    // Release the holds of everyone who is no longer on top
+    for (const p of previous) {
+      await releaseHold(p.payment_intent_id);
+      if (p.status === 'outbid') await notifyOutbid(ds, p);
+    }
+
+    return json(201, { bid: publicBids([bid], user.sub)[0], dataset: publicDataset(ds, user.sub) });
+  }
+
+  return json(405, { error: 'Method not allowed' });
+});

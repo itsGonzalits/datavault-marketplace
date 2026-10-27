@@ -1,132 +1,99 @@
 /* ============================================================
-   Netlify Function: /upload-file
+   Netlify Function: /upload-file   (signed in)
    POST multipart/form-data:
-     - file: the encrypted blob
-     - name: original filename
-     - type: 'dataset' | 'verification'
-   Returns: { path, url }
+     - file            the file (datasets arrive already encrypted)
+     - name            original filename
+     - type            'dataset' | 'verification'
+     - encryption_key  (datasets) the AES key, kept server-side and
+                       used only to hand the winning buyer a normal file
+     - doc_type        (verification) kind of business document
+   Returns: { path } for datasets, { verified, status, note } for documents
    ============================================================ */
 
-const { getStore, connectBlobs } = require('./_blobs');
+const { getStore, connectBlobs, getJSON, setJSON } = require('../lib/blobs');
+const { json, getUser, cleanText, handler, httpError } = require('../lib/http');
+const { sendEmail, escapeHtml } = require('../lib/email');
 
-const CORS = {
-  'Access-Control-Allow-Origin':  '*',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+// Netlify functions accept request bodies up to ~6 MB
+const MAX_BYTES = 5.5 * 1024 * 1024;
 
-exports.handler = async (event, context) => {
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers: CORS, body: '' };
-  }
-
+exports.handler = handler(async (event, context) => {
+  if (event.httpMethod !== 'POST') return json(405, { error: 'Method not allowed' });
   connectBlobs(event);
 
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'Method not allowed' }) };
+  const user = getUser(context);
+  if (!user) throw httpError(401, 'Please sign in first.');
+
+  const contentType = event.headers['content-type'] || event.headers['Content-Type'] || '';
+  const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
+  if (!contentType.includes('multipart/form-data') || !boundaryMatch) throw httpError(400, 'Expected a file upload.');
+
+  const bodyBuffer = event.isBase64Encoded ? Buffer.from(event.body || '', 'base64') : Buffer.from(event.body || '', 'binary');
+  const fields = {};
+  let fileBuffer = null;
+  let fileName = 'file';
+  for (const part of parseMultipart(bodyBuffer, boundaryMatch[1] || boundaryMatch[2])) {
+    if (part.name === 'file') { fileBuffer = part.data; fileName = part.filename || fileName; }
+    else fields[part.name] = part.data.toString('utf8');
+  }
+  if (!fileBuffer || !fileBuffer.length) throw httpError(400, 'No file was received. Please try again.');
+  if (fileBuffer.length > MAX_BYTES) throw httpError(413, 'That file is too large. Please keep files under 5 MB.');
+
+  fileName = safeFileName(fields.name || fileName);
+  const uploadType = fields.type === 'verification' ? 'verification' : 'dataset';
+  const fileKey = `${user.sub}/${Date.now()}-${fileName}`;
+
+  /* ── Dataset file ── */
+  if (uploadType === 'dataset') {
+    const encryptionKey = cleanText(fields.encryption_key, 100);
+    if (!/^[A-Za-z0-9+/=]{40,64}$/.test(encryptionKey)) throw httpError(400, 'The file could not be secured. Please try again.');
+    await getStore('encrypted-files').set(fileKey, fileBuffer);
+    await setJSON(getStore('file-index'), fileKey, {
+      key:            fileKey,
+      owner_id:       user.sub,
+      original_name:  fileName,
+      size:           fileBuffer.length,
+      encryption_key: encryptionKey,
+      uploaded_at:    new Date().toISOString(),
+    });
+    return json(200, { path: fileKey });
   }
 
-  try {
-    const user = context.clientContext?.user;
-    if (!user) {
-      return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: 'Unauthorized' }) };
-    }
+  /* ── Business verification document ── */
+  await getStore('verification-docs').set(fileKey, fileBuffer);
+  const docType = cleanText(fields.doc_type, 40);
+  const check = await verifyDocumentWithAI(fileBuffer, fileName, docType, user);
 
-    // Parse multipart body
-    // Netlify passes base64-encoded bodies for binary
-    const contentType = event.headers['content-type'] || '';
+  const profiles = getStore('profiles');
+  const profile = (await getJSON(profiles, user.sub)) || { id: user.sub, email: user.email, role: 'both', created_at: new Date().toISOString() };
+  profile.verified             = check.verified;
+  profile.verification_status  = check.verified ? 'verified' : 'pending_review';
+  profile.verification_doc     = fileKey;
+  profile.verification_details = check.details;
+  profile.verified_at          = check.verified ? new Date().toISOString() : null;
+  profile.updated_at           = new Date().toISOString();
+  await setJSON(profiles, user.sub, profile);
 
-    if (!contentType.includes('multipart/form-data')) {
-      return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Expected multipart/form-data' }) };
-    }
-
-    // Parse multipart manually (Netlify Functions don't have native multipart parser)
-    const boundary = contentType.split('boundary=')[1];
-    if (!boundary) {
-      return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'No boundary in multipart' }) };
-    }
-
-    const bodyBuffer = event.isBase64Encoded
-      ? Buffer.from(event.body, 'base64')
-      : Buffer.from(event.body || '');
-
-    const parts = parseMultipart(bodyBuffer, boundary);
-
-    let fileBuffer  = null;
-    let fileName    = 'file.enc';
-    let uploadType  = 'dataset';
-    let docType     = '';
-
-    for (const part of parts) {
-      if (part.name === 'file')     { fileBuffer = part.data; fileName = part.filename || fileName; }
-      if (part.name === 'name')     { fileName   = part.data.toString(); }
-      if (part.name === 'type')     { uploadType = part.data.toString(); }
-      if (part.name === 'doc_type') { docType    = part.data.toString(); }
-    }
-
-    if (!fileBuffer) {
-      return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'No file provided' }) };
-    }
-
-    // Store in Netlify Blobs
-    const storeName = uploadType === 'verification' ? 'verification-docs' : 'encrypted-files';
-    const store     = getStore({ name: storeName, consistency: 'strong' });
-    const fileKey   = `${user.sub}/${Date.now()}-${fileName}`;
-
-    await store.set(fileKey, fileBuffer, { metadata: {
-      originalName: fileName,
-      uploadedBy:   user.sub,
-      uploadedAt:   new Date().toISOString(),
-      type:         uploadType,
-      docType:      docType || 'general',
-    }});
-
-    // Generate a signed URL (token-protected, 48-hour expiry)
-    // For Netlify Blobs, we use our own endpoint to serve files securely
-    const downloadToken = Buffer.from(JSON.stringify({ key: fileKey, exp: Date.now() + 48 * 3600 * 1000, uid: user.sub, store: storeName })).toString('base64url');
-    const downloadUrl   = `/api/download?token=${downloadToken}`;
-
-    // Automated AI Document Verification for Sellers
-    let verification = null;
-    let isAccepted = false;
-    if (uploadType === 'verification') {
-      verification = await verifyDocumentWithAI(fileBuffer, fileName, docType, user);
-      isAccepted = verification ? verification.is_valid !== false : true;
-
-      // Automatically update the seller's profile in the 'profiles' Netlify Blobs store
-      try {
-        const profilesStore = getStore({ name: 'profiles', consistency: 'strong' });
-        const rawProfile = await profilesStore.get(user.sub);
-        const profile = rawProfile ? JSON.parse(rawProfile) : { id: user.sub, email: user.email };
-
-        profile.verified = isAccepted;
-        profile.verification_status = isAccepted ? 'verified' : 'rejected';
-        profile.verification_doc_url = downloadUrl;
-        profile.verified_at = isAccepted ? new Date().toISOString() : null;
-        profile.verification_details = verification;
-
-        await profilesStore.set(user.sub, JSON.stringify(profile));
-      } catch (profErr) {
-        console.warn('[upload-file] Failed to auto-update profile verification status:', profErr.message);
-      }
-    }
-
-    return {
-      statusCode: 200,
-      headers: { ...CORS, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        path: fileKey,
-        url: downloadUrl,
-        verified: isAccepted,
-        verification
-      }),
-    };
-
-  } catch (err) {
-    console.error('[upload-file]', err);
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: err.message }) };
+  if (!check.verified && process.env.ADMIN_EMAIL) {
+    await sendEmail({
+      to: process.env.ADMIN_EMAIL,
+      subject: `[DataVault] Verification needs review: ${user.email}`,
+      heading: 'A seller document needs a manual look',
+      paragraphs: [
+        `Seller: ${escapeHtml(user.email)} (${escapeHtml(user.sub)})`,
+        `Document: ${escapeHtml(fileKey)} in the "verification-docs" blob store.`,
+        `Automatic check: ${escapeHtml(check.note)}`,
+      ],
+    });
   }
-};
+
+  return json(200, { verified: check.verified, status: profile.verification_status, note: check.note });
+});
+
+function safeFileName(name) {
+  const base = String(name).split(/[\\/]/).pop().replace(/[^A-Za-z0-9._ -]/g, '_').replace(/\s+/g, ' ').trim();
+  return (base || 'file').slice(0, 100);
+}
 
 /* ── Automated AI Document Verification ── */
 async function verifyDocumentWithAI(fileBuffer, fileName, docType, user) {
@@ -137,21 +104,18 @@ async function verifyDocumentWithAI(fileBuffer, fileName, docType, user) {
   else if (ext === 'png') mimeType = 'image/png';
   else if (ext === 'webp') mimeType = 'image/webp';
 
-  let verificationResult = {
-    is_valid: true,
-    confidence: 0.98,
-    doc_type: docType || 'Official Business Document',
-    method: 'automated_rule_engine',
-    note: 'Official business document verified. Vendor verified badge issued.'
-  };
+  // Without a confident automatic check, a person reviews the document
+  const pending = (note) => ({ verified: false, note, details: { method: 'manual_review' } });
+  if (!apiKey) return pending('Received — our team will review it within 1 business day.');
+  if (!(['pdf', 'jpg', 'jpeg', 'png', 'webp'].includes(ext))) return pending('Received — our team will review it within 1 business day.');
 
-  if (apiKey && (mimeType.startsWith('image/') || mimeType === 'application/pdf')) {
+  {
     try {
       const base64Data = fileBuffer.toString('base64');
       const prompt = `You are an automated KYC compliance auditor for DataVault Marketplace.
 Analyze this official business document (such as an EIN confirmation letter, business registration certificate, license, tax document, or utility bill).
 Document type reported: ${docType || 'Business Document'}.
-Vendor account ID: ${user.sub || user.email}.
+Set is_valid to false and confidence low if the image is not a business document, is unreadable, or looks edited.
 
 Verify whether this looks like an authentic business or tax document.
 Respond ONLY with a valid JSON object matching this schema:
@@ -189,9 +153,11 @@ Respond ONLY with a valid JSON object matching this schema:
         const text = jsonRes.candidates?.[0]?.content?.parts?.[0]?.text;
         if (text) {
           const parsed = JSON.parse(text);
-          verificationResult = {
-            ...parsed,
-            method: 'gemini_multimodal_vision'
+          const ok = parsed.is_valid === true && Number(parsed.confidence) >= 0.75;
+          return {
+            verified: ok,
+            note: ok ? 'Your business document was verified.' : 'We couldn\'t confirm this automatically, so our team will review it within 1 business day.',
+            details: { method: 'gemini', doc_type: cleanText(parsed.doc_type, 60), confidence: Number(parsed.confidence) || 0, detected_business_name: cleanText(parsed.detected_business_name, 100) },
           };
         }
       } else {
@@ -202,7 +168,7 @@ Respond ONLY with a valid JSON object matching this schema:
     }
   }
 
-  return verificationResult;
+  return pending('Received — our team will review it within 1 business day.');
 }
 
 /* ── Minimal multipart parser ── */
@@ -249,8 +215,5 @@ function parseMultipart(buffer, boundary) {
 }
 
 function indexOf(buf, search, start = 0) {
-  for (let i = start; i <= buf.length - search.length; i++) {
-    if (buf.slice(i, i + search.length).equals(search)) return i;
-  }
-  return -1;
+  return buf.indexOf(search, start);
 }

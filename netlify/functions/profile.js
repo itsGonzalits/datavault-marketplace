@@ -1,93 +1,71 @@
 /* ============================================================
    Netlify Function: /profile
-   GET   ?user_id=xxx  → get profile
-   POST  (body)        → create/upsert profile
-   PATCH (body)        → update profile fields
+   GET   → the signed-in user's own profile
+   GET   ?user_id=xxx → someone's PUBLIC profile (name, area, verified)
+   POST  → create or update your own profile
+   PATCH → same as POST (kept for older pages)
+
+   Users can only edit safe fields. "verified" is only ever set by
+   the document check in upload-file.js.
    ============================================================ */
 
-const { getStore, connectBlobs } = require('./_blobs');
+const { getStore, connectBlobs, getJSON, setJSON } = require('../lib/blobs');
+const { json, parseBody, getUser, cleanText, handler, httpError } = require('../lib/http');
 
-const CORS = {
-  'Access-Control-Allow-Origin':  '*',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Access-Control-Allow-Methods': 'GET, POST, PATCH, OPTIONS',
+const EDITABLE = {
+  full_name: 100, business_name: 100, industry: 60,
+  city: 60, state: 60, country: 60, payout_email: 120, payout_details: 300,
 };
 
-exports.handler = async (event, context) => {
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers: CORS, body: '' };
-  }
-
+exports.handler = handler(async (event, context) => {
   connectBlobs(event);
+  const store = getStore('profiles');
+  const user  = getUser(context);
+  const q     = event.queryStringParameters || {};
 
-  try {
-    const store = getStore({ name: 'profiles', consistency: 'strong' });
-    const q = event.queryStringParameters || {};
-
-    /* ── GET ── */
-    if (event.httpMethod === 'GET') {
-      const userId = q.user_id || context.clientContext?.user?.sub;
-      if (!userId) return json(400, { error: 'user_id required' });
-
-      const raw = await store.get(userId);
-      const profile = raw ? JSON.parse(raw) : null;
-      return json(200, { profile });
+  if (event.httpMethod === 'GET') {
+    if (q.user_id && q.user_id !== user?.sub) {
+      const p = await getJSON(store, q.user_id);
+      return json(200, { profile: p ? publicProfile(p) : null });
     }
-
-    /* ── POST — Create/upsert ── */
-    if (event.httpMethod === 'POST') {
-      const user = context.clientContext?.user;
-      if (!user) return json(401, { error: 'Unauthorized' });
-
-      const body = JSON.parse(event.body || '{}');
-      const raw  = await store.get(user.sub);
-      const existing = raw ? JSON.parse(raw) : {};
-
-      const profile = {
-        id:                  user.sub,
-        email:               user.email,
-        full_name:           body.full_name      || existing.full_name    || '',
-        role:                body.role            || existing.role         || 'buyer',
-        business_name:       body.business_name  || existing.business_name || '',
-        industry:            body.industry        || existing.industry      || '',
-        city:                body.city            || existing.city          || '',
-        state:               body.state           || existing.state         || '',
-        country:             body.country         || existing.country       || '',
-        verified:            existing.verified    || false,
-        paypal_email:        body.paypal_email    || existing.paypal_email  || null,
-        verification_doc_url: body.verification_doc_url || existing.verification_doc_url || null,
-        stripe_connect_id:   existing.stripe_connect_id || null,
-        created_at:          existing.created_at || new Date().toISOString(),
-        updated_at:          new Date().toISOString(),
-      };
-
-      await store.set(user.sub, JSON.stringify(profile));
-      return json(200, { profile });
-    }
-
-    /* ── PATCH — Update specific fields ── */
-    if (event.httpMethod === 'PATCH') {
-      const user = context.clientContext?.user;
-      if (!user) return json(401, { error: 'Unauthorized' });
-
-      const body = JSON.parse(event.body || '{}');
-      const raw  = await store.get(user.sub);
-      if (!raw) return json(404, { error: 'Profile not found' });
-
-      const existing = JSON.parse(raw);
-      const updated  = { ...existing, ...body, id: user.sub, updated_at: new Date().toISOString() };
-      await store.set(user.sub, JSON.stringify(updated));
-      return json(200, { profile: updated });
-    }
-
-    return json(405, { error: 'Method not allowed' });
-
-  } catch (err) {
-    console.error('[profile]', err);
-    return json(500, { error: err.message });
+    if (!user) throw httpError(401, 'Please sign in.');
+    return json(200, { profile: await getJSON(store, user.sub) });
   }
-};
 
-function json(status, body) {
-  return { statusCode: status, headers: { ...CORS, 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
+  if (event.httpMethod === 'POST' || event.httpMethod === 'PATCH') {
+    if (!user) throw httpError(401, 'Please sign in.');
+    const body = parseBody(event);
+    const existing = (await getJSON(store, user.sub)) || {};
+
+    const profile = {
+      ...existing,
+      id:         user.sub,
+      email:      user.email,
+      role:       'both', // every account can buy and sell
+      verified:   existing.verified === true,
+      created_at: existing.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    // Older pages sent paypal_email
+    if (body.paypal_email !== undefined && body.payout_email === undefined) body.payout_email = body.paypal_email;
+    for (const [field, max] of Object.entries(EDITABLE)) {
+      if (body[field] !== undefined) profile[field] = cleanText(body[field], max);
+    }
+    if (profile.payout_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.payout_email)) {
+      throw httpError(400, 'Please enter a valid payout email address.');
+    }
+    if (!profile.business_name && !profile.full_name) throw httpError(400, 'Please enter your name or business name.');
+
+    await setJSON(store, user.sub, profile);
+    return json(200, { profile });
+  }
+
+  return json(405, { error: 'Method not allowed' });
+});
+
+function publicProfile(p) {
+  return {
+    id: p.id, business_name: p.business_name, industry: p.industry,
+    city: p.city, state: p.state, country: p.country, verified: p.verified === true,
+  };
 }
