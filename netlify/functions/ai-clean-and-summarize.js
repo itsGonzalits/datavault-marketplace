@@ -61,6 +61,22 @@ exports.handler = async (event, context) => {
     // 3. Generate AI Powered Title & Summary Description
     const sampleRows = lines.slice(0, 10).join('\n');
     let aiSummary = await generateGeminiSummary(originalName, headersDetected, sampleRows, rowCount);
+    const firstRow = lines[1] ? splitCsvLine(lines[1]) : [];
+    const realColumns = headersDetected
+      .map((h, i) => ({ name: h, type: '', description: '', sample: (firstRow[i] || '').trim().slice(0, 40) }))
+      .filter(c => c.name && c.sample !== '[REMOVED]');
+    if (!aiSummary.ai_analysis || aiSummary.fallback) {
+      aiSummary.ai_analysis = {
+        highlights: [
+          `${rowCount.toLocaleString()} rows of data.`,
+          `Includes: ${realColumns.slice(0, 6).map(c => c.name).join(', ')}.`,
+          piiCount ? 'Customer names, emails and phone numbers were removed automatically.' : 'No customer contact details were found in the file.',
+        ],
+        columns: realColumns,
+      };
+    } else if (Array.isArray(aiSummary.ai_analysis.columns)) {
+      aiSummary.ai_analysis.columns = aiSummary.ai_analysis.columns.filter(c => !/REMOVED/i.test(c.sample || ''));
+    }
 
     return {
       statusCode: 200,
@@ -255,9 +271,10 @@ async function generateGeminiSummary(fileName, headers, sample, totalRows) {
   if (!apiKey) {
     const inferredCategory = inferCategory(headers, fileName);
     return {
-      title: `${cleanName(fileName)} (${totalRows.toLocaleString()} Records)`,
-      description: `High-quality anonymized dataset containing ${totalRows.toLocaleString()} rows. Key fields include: ${headers.slice(0, 6).join(', ')}. All personal identifiers (names, emails, phones) have been automatically scrubbed.`,
+      title: `${cleanName(fileName)} — ${totalRows.toLocaleString()} rows`,
+      description: `${totalRows.toLocaleString()} rows of business data. Columns include: ${headers.slice(0, 6).join(', ')}. Customer contact details were removed before listing.`,
       category: inferredCategory,
+      fallback: true,
       ai_analysis: {
         highlights: [
           `Contains ${totalRows.toLocaleString()} structured records for market research.`,
@@ -327,9 +344,10 @@ Return ONLY a valid JSON object matching this schema:
   }
 
   return {
-    title: `${cleanName(fileName)} (${totalRows.toLocaleString()} Records)`,
-    description: `High-quality anonymized dataset containing ${totalRows.toLocaleString()} rows. Key fields include: ${headers.slice(0, 6).join(', ')}. All personal identifiers have been scrubbed for privacy compliance.`,
+    title: `${cleanName(fileName)} — ${totalRows.toLocaleString()} rows`,
+    description: `${totalRows.toLocaleString()} rows of business data. Columns include: ${headers.slice(0, 6).join(', ')}. Customer contact details were removed before listing.`,
     category: inferCategory(headers, fileName),
+    fallback: true,
     ai_analysis: {
       highlights: [
         `Contains ${totalRows.toLocaleString()} structured records for market research.`,

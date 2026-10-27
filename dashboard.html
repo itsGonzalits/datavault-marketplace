@@ -3,336 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seller Dashboard | DataVault</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script><script src="js/config.js"></script>
+    <title>My Dashboard | DataVault</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script src="js/config.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
-    <!-- css/style.css removed (file does not exist). Dashboard uses its own inline theme below. -->
-    <style>
-        :root {
-            --bg-color: #0b0f19;
-            --surface-color: #1a1f33;
-            --primary: #4ade80;
-            --primary-dark: #22c55e;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: rgba(255, 255, 255, 0.05);
-            --danger: #ef4444;
-            --card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-        }
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 0;
-        }
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.5rem 3rem;
-            background: rgba(26, 31, 51, 0.8);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .navbar .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-        .user-nav {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-        .verified-badge {
-            background: rgba(74, 222, 128, 0.15);
-            color: var(--primary);
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-        .pending-badge {
-            background: rgba(245, 158, 11, 0.15);
-            color: #f59e0b;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-        .btn-upload {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: #0b0f19;
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: opacity 0.2s;
-            display: none; /* hidden if not verified */
-        }
-        .btn-upload:hover { opacity: 0.9; }
-        
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-        
-        .header { margin-bottom: 2rem; }
-        .header h1 { font-size: 2rem; margin: 0 0 0.5rem 0; }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 3rem;
-        }
-        .stat-card {
-            background: var(--surface-color);
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: var(--card-shadow);
-            border: 1px solid var(--border-color);
-            transition: transform 0.2s;
-        }
-        .stat-card:hover { transform: translateY(-5px); }
-        .stat-title { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
-        .stat-value { font-size: 2.5rem; font-weight: 700; color: var(--text-main); }
-        
-        .section-box {
-            background: var(--surface-color);
-            border-radius: 16px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: var(--card-shadow);
-            border: 1px solid var(--border-color);
-        }
-        .section-box h2 {
-            margin-top: 0;
-            margin-bottom: 1.5rem;
-            font-size: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.75rem;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-        th {
-            color: var(--text-muted);
-            font-weight: 500;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.05em;
-        }
-        tr:hover {
-            background: rgba(255,255,255,0.02);
-        }
-        
-        .badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        .badge.active { background: rgba(74, 222, 128, 0.1); color: var(--primary); }
-        
-        .btn-action {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: none;
-            padding: 0.4rem 0.8rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: background 0.2s;
-        }
-        .btn-action:hover { background: rgba(255,255,255,0.2); }
-        .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
-        .btn-danger:hover { background: rgba(239, 68, 68, 0.2); }
-        
-        .form-group { margin-bottom: 1.5rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); }
-        .form-control {
-            width: 100%;
-            padding: 0.8rem;
-            border-radius: 8px;
-            background: rgba(0,0,0,0.2);
-            border: 1px solid var(--border-color);
-            color: white;
-            font-family: inherit;
-        }
-        .btn-submit {
-            background: var(--primary);
-            color: #0b0f19;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .btn-submit:hover { opacity: 0.9; }
-
-        #bid-feed {
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        .toast {
-            background: rgba(74, 222, 128, 0.2);
-            border-left: 4px solid var(--primary);
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 4px;
-        }
-        
-    </style>
 </head>
 <body>
 
-<nav class="navbar">
-    <div class="logo">DataVault Seller</div>
-    <div class="user-nav">
-        <span id="business-name-display">Loading...</span>
-        <span id="verification-status"></span>
-        <a href="upload.html" id="upload-btn" class="btn-upload">+ Upload Dataset</a>
-        <button onclick="DVAuthManager.signOut()" class="btn-action">Sign Out</button>
-    </div>
-</nav>
+<nav class="nav"></nav>
 
-<div class="container">
-    <div class="header">
-        <h1 id="greeting">Welcome back.</h1>
-        <p style="color: var(--text-muted);">Here's what's happening with your datasets today.</p>
-    </div>
-
-    <!-- Stats -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-title">Total Earned</div>
-            <div class="stat-value" id="stat-earned">$0.00</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-title">Active Listings</div>
-            <div class="stat-value" id="stat-active">0</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-title">Bids This Week</div>
-            <div class="stat-value" id="stat-bids">0</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-title">Avg Sale Price</div>
-            <div class="stat-value" id="stat-avg">$0.00</div>
-        </div>
-    </div>
-
-    <!-- Live Bid Alerts -->
-    <div class="section-box" style="border-left: 4px solid var(--primary);">
-        <h2>Live Bid Alerts ⚡</h2>
-        <div id="bid-feed">
-            <p style="color: var(--text-muted);">Listening for new bids...</p>
-        </div>
-    </div>
-
-    <!-- Datasets Table -->
-    <div class="section-box">
-        <h2>My Datasets</h2>
-        <table id="datasets-table">
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Category</th>
-                    <th>Top Bid</th>
-                    <th>Bids</th>
-                    <th>Time Left</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Rows injected via JS -->
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Earnings History -->
-    <div class="section-box">
-        <h2>Earnings History</h2>
-        <table id="earnings-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Dataset</th>
-                    <th>Sale Price</th>
-                    <th>Platform Fee (5%)</th>
-                    <th>Your Payout</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Rows injected via JS -->
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Settings Form -->
-    <div class="section-box">
-        <h2>Seller Profile Settings</h2>
-        <form id="settings-form">
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
-                <div class="form-group" style="grid-column: span 3;">
-                    <label>Business Name</label>
-                    <input type="text" id="set-business-name" class="form-control" required>
-                </div>
-                <div class="form-group" style="grid-column: span 3;">
-                    <label>Industry</label>
-                    <input type="text" id="set-industry" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label>City</label>
-                    <input type="text" id="set-city" class="form-control" placeholder="e.g. London">
-                </div>
-                <div class="form-group">
-                    <label>State / Region / Province</label>
-                    <input type="text" id="set-state" class="form-control" placeholder="e.g. England">
-                </div>
-                <div class="form-group">
-                    <label>Country</label>
-                    <input type="text" id="set-country" class="form-control" placeholder="e.g. United Kingdom">
-                </div>
-                <div class="form-group" style="grid-column: span 3;">
-                    <label>PayPal Email (for payouts)</label>
-                    <input type="email" id="set-paypal" class="form-control">
-                </div>
+<main class="page">
+    <div class="container">
+        <div class="page__head">
+            <div>
+                <h1 class="page__title" id="greeting">Welcome back</h1>
+                <p class="text-secondary">Everything you're buying and selling, in one place.</p>
             </div>
-            <button type="submit" class="btn-submit">Save Settings</button>
-        </form>
+            <div class="flex gap-3 flex-wrap">
+                <a href="marketplace.html" class="btn btn--outline">Browse data</a>
+                <a href="upload.html" class="btn btn--accent">+ Sell new data</a>
+            </div>
+        </div>
+
+        <div class="tabs" role="tablist">
+            <button class="tab" data-tab="buying" role="tab">🛒 Buying <span class="tab__count" id="count-buying">0</span></button>
+            <button class="tab" data-tab="selling" role="tab">💰 Selling <span class="tab__count" id="count-selling">0</span></button>
+            <button class="tab" data-tab="settings" role="tab">⚙️ My account</button>
+        </div>
+
+        <!-- ── BUYING ── -->
+        <section id="tab-buying" class="hidden">
+            <div class="panel">
+                <h2 class="panel__title">Data you bought</h2>
+                <div id="purchases"><div class="skeleton" style="height:60px"></div></div>
+            </div>
+            <div class="panel">
+                <h2 class="panel__title">Your bids</h2>
+                <div id="bids"><div class="skeleton" style="height:60px"></div></div>
+            </div>
+        </section>
+
+        <!-- ── SELLING ── -->
+        <section id="tab-selling" class="hidden">
+            <div id="seller-nudges"></div>
+            <div class="stat-row">
+                <div class="mini-stat"><div class="mini-stat__label">You've earned</div><div class="mini-stat__value text-primary" id="stat-earned">$0</div></div>
+                <div class="mini-stat"><div class="mini-stat__label">Live auctions</div><div class="mini-stat__value" id="stat-live">0</div></div>
+                <div class="mini-stat"><div class="mini-stat__label">Bids received</div><div class="mini-stat__value" id="stat-bids">0</div></div>
+            </div>
+            <div class="panel">
+                <h2 class="panel__title">Your listings</h2>
+                <div id="listings"><div class="skeleton" style="height:60px"></div></div>
+            </div>
+            <div class="panel">
+                <h2 class="panel__title">Your sales &amp; payouts</h2>
+                <p class="text-sm text-secondary mb-4">DataVault keeps 5% of each sale. The rest is sent to your payout details within 5 business days.</p>
+                <div id="sales"><div class="skeleton" style="height:60px"></div></div>
+            </div>
+        </section>
+
+        <!-- ── SETTINGS ── -->
+        <section id="tab-settings" class="hidden">
+            <div class="panel">
+                <h2 class="panel__title">Your details</h2>
+                <form id="settings-form" class="form-grid">
+                    <div class="form-group span-2">
+                        <label class="form-label" for="set-business">Business name (shown to buyers)</label>
+                        <input class="input" id="set-business" required maxlength="100">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="set-name">Your name</label>
+                        <input class="input" id="set-name" maxlength="100">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="set-industry">Type of business</label>
+                        <input class="input" id="set-industry" maxlength="60" placeholder="e.g. Bakery">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="set-city">City</label>
+                        <input class="input" id="set-city" maxlength="60">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="set-state">State / Region</label>
+                        <input class="input" id="set-state" maxlength="60">
+                    </div>
+                    <div class="form-group span-2">
+                        <label class="form-label" for="set-country">Country</label>
+                        <input class="input" id="set-country" maxlength="60">
+                    </div>
+                    <div class="form-group span-2">
+                        <label class="form-label" for="set-payout">Where should we send your money? (PayPal email)</label>
+                        <input class="input" id="set-payout" type="email" maxlength="120" placeholder="you@example.com">
+                        <div class="form-hint text-xs text-secondary mt-2">Prefer a bank transfer? Leave this blank and write your preference below — we'll email you to set it up.</div>
+                    </div>
+                    <div class="form-group span-2">
+                        <label class="form-label" for="set-payout-notes">Payout notes (optional)</label>
+                        <input class="input" id="set-payout-notes" maxlength="300" placeholder="e.g. Please pay by bank transfer">
+                    </div>
+                    <div class="span-2"><button type="submit" class="btn btn--primary btn--lg">Save my details</button></div>
+                </form>
+            </div>
+
+            <div class="panel" id="verify-panel">
+                <h2 class="panel__title">Business verification</h2>
+                <div id="verify-status" class="mb-4"></div>
+                <p class="text-secondary text-sm mb-4">Verified businesses get a ✓ badge on their listings, and buyers bid more on them. Upload one document that shows your business name — a business license, EIN letter, tax form, or a utility bill.</p>
+                <div class="flex gap-3 flex-wrap items-center">
+                    <select id="doc-type" class="input" style="max-width:280px">
+                        <option value="license">Business license</option>
+                        <option value="ein">EIN confirmation letter</option>
+                        <option value="tax">Tax document</option>
+                        <option value="utility">Utility bill with business name</option>
+                    </select>
+                    <label class="btn btn--outline" for="verify-file">📄 Choose document</label>
+                    <input type="file" id="verify-file" class="hidden" accept=".pdf,.jpg,.jpeg,.png">
+                </div>
+                <p class="text-xs text-secondary mt-3">PDF, JPG or PNG, under 5 MB. Only our team sees this document.</p>
+            </div>
+
+            <div class="panel">
+                <h2 class="panel__title">Sign-in</h2>
+                <p class="text-secondary text-sm mb-4">Signed in as <strong id="set-email"></strong></p>
+                <button class="btn btn--outline" onclick="DVAuthManager.signOut()">Sign out</button>
+            </div>
+        </section>
     </div>
-    <!-- Footer -->
-    <footer class="footer section section--sm text-secondary mt-16">
+</main>
+
+<footer class="footer section section--sm text-secondary">
         <div class="container">
             <div class="footer__grid grid grid-4 gap-8 mb-8">
                 <div>
-                    <a href="index.html" class="footer__logo font-bold text-lg text-primary mb-4 flex items-center gap-2">
-                        <span>🔐</span> DataVault
-                    </a>
-                    <p class="footer__tagline text-sm">Empowering small businesses to monetize their most valuable asset — their data.</p>
+                    <a href="index.html" class="footer__logo font-bold text-lg text-primary mb-4 flex items-center gap-2"><span>🔐</span> DataVault</a>
+                    <p class="footer__tagline text-sm">Helping small businesses earn money from the data they already have.</p>
                 </div>
                 <div>
                     <h4 class="footer__col-title font-bold mb-4">Platform</h4>
                     <ul class="flex flex-col gap-3 text-sm">
                         <li><a href="marketplace.html" class="footer__link">Marketplace</a></li>
-                        <li><a href="onboard.html" class="footer__link">For Sellers</a></li>
+                        <li><a href="upload.html" class="footer__link">Sell your data</a></li>
                         <li><a href="pricing.html" class="footer__link">Pricing & Fees</a></li>
                         <li><a href="index.html#how-it-works" class="footer__link">How It Works</a></li>
                     </ul>
@@ -357,266 +168,269 @@
             </div>
             <div class="divider mb-6"></div>
             <div class="footer__bottom flex justify-between items-center text-xs">
-                <p>© 2026 DataVault Inc. All rights reserved. Encrypted & Verified Data Exchange.</p>
+                <p>© 2026 DataVault. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
 <script src="js/app.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", async () => {
-    // Auth Guard — DVAuthManager auto-inits from auth.js
-    // Wait briefly for Netlify Identity to restore session
-    await new Promise(r => setTimeout(r, 400));
+'use strict';
+const { esc, money, timeLeft, shortDate } = DV;
+let profile = null, listings = [], sales = [], purchases = [], bids = [];
 
-    let user = DVAuthManager.user;
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!(await DVAuthManager.requireProfile())) return;
+    profile = DVAuthManager.profile;
 
-    // Demo Mode handling (append ?demo to URL)
-    if (!user && window.location.search.includes('demo')) {
-        DVAuthManager.enableDemoUser('seller');
-        user = DVAuthManager.user;
-    }
+    document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => { location.hash = t.dataset.tab; }));
+    window.addEventListener('hashchange', showTab);
+    showTab();
 
-    if (!user) {
-        window.location.href = 'login.html?returnTo=' + encodeURIComponent(window.location.href);
-        return;
-    }
+    renderProfile();
+    document.getElementById('settings-form').addEventListener('submit', saveSettings);
+    document.getElementById('verify-file').addEventListener('change', uploadVerification);
 
-    let userId = user.id;
-    let profile = null;
-    let datasets = [];
-    let earnings = [];
-
-    // Load Real Data via DVSupabase (api.js)
-    async function loadData() {
-        try {
-            const [profileRes, datasetsRes, earningsRes] = await Promise.all([
-                DVSupabase.profiles.get(userId).catch(() => ({ data: null })),
-                DVSupabase.datasets.getBySeller(userId).catch(() => ({ data: [] })),
-                DVSupabase.transactions.getSellerEarnings().catch(() => ({ data: [] })),
-            ]);
-            profile  = profileRes?.data || { business_name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Seller', verified: false };
-            datasets = datasetsRes?.data || [];
-            earnings = earningsRes?.data || [];
-        } catch (err) {
-            console.warn('[dashboard] API error:', err.message);
-            profile  = profile || { business_name: user?.user_metadata?.full_name || 'Seller', verified: false };
-            datasets = [];
-            earnings = [];
-        }
-
-        renderProfile();
-        computeAndRenderStats();
-        renderDatasets();
-        renderEarnings();
-        populateSettings();
-        setupRealtime();
-    }
-
-    function renderProfile() {
-        const nameDisplay = profile?.business_name || 'Seller';
-        document.getElementById('business-name-display').innerText = nameDisplay;
-        document.getElementById('greeting').innerText = `Welcome back, ${nameDisplay}.`;
-        
-        const badgeSpan = document.getElementById('verification-status');
-        const uploadBtn = document.getElementById('upload-btn');
-        if (profile?.verified) {
-            badgeSpan.className = 'verified-badge';
-            badgeSpan.innerText = 'Verified Seller ✓';
-            uploadBtn.style.display = 'inline-block';
-        } else {
-            badgeSpan.className = 'pending-badge';
-            badgeSpan.innerHTML = 'Pending Verification <a href="#" style="color:inherit; text-decoration:underline;">Upload Doc</a>';
-        }
-    }
-
-    function computeAndRenderStats() {
-        let totalEarned = 0;
-        let avgSalePrice = 0;
-        let activeCount = 0;
-        let bidsThisWeek = 0; // simplified mock calculation
-        
-        if (earnings) {
-            earnings.forEach(e => {
-                totalEarned += (e.seller_payout || 0);
-            });
-            if (earnings.length > 0) {
-                avgSalePrice = earnings.reduce((sum, e) => sum + (e.amount || 0), 0) / earnings.length;
-            }
-        }
-        
-        if (datasets) {
-            datasets.forEach(d => {
-                if (d.status === 'active') activeCount++;
-                bidsThisWeek += (d.bid_count || 0);
-            });
-        }
-
-        document.getElementById('stat-earned').innerText = `$${totalEarned.toLocaleString()}`;
-        document.getElementById('stat-active').innerText = activeCount;
-        document.getElementById('stat-bids').innerText = bidsThisWeek;
-        document.getElementById('stat-avg').innerText = `$${avgSalePrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
-    }
-
-    function renderDatasets() {
-        const tbody = document.querySelector('#datasets-table tbody');
-        tbody.innerHTML = '';
-        if(!datasets || datasets.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7">No datasets listed yet.</td></tr>';
-            return;
-        }
-
-        datasets.forEach(d => {
-            const tr = document.createElement('tr');
-            
-            // basic time left calc
-            let timeLeft = 'Ended';
-            if(d.status === 'active') {
-                const ms = new Date(d.auction_end) - new Date();
-                if(ms > 0) {
-                    const days = Math.floor(ms / (1000 * 60 * 60 * 24));
-                    const hrs  = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    timeLeft = days > 0 ? `${days}d ${hrs}h` : `${hrs}h left`;
-                }
-            }
-
-            tr.innerHTML = `
-                <td><strong>${d.title}</strong></td>
-                <td>${d.category || 'N/A'}</td>
-                <td>$${(d.current_top_bid || 0).toLocaleString()}</td>
-                <td>${d.bid_count || 0}</td>
-                <td>${timeLeft}</td>
-                <td><span class="badge ${d.status === 'active' ? 'active' : ''}">${d.status.toUpperCase()}</span></td>
-                <td>
-                    <a href="dataset.html?id=${d.id}" class="btn-action">View</a>
-                    ${d.status === 'active' ? `<button class="btn-action btn-danger" onclick="endEarly('${d.id}', '${d.winner_id || (d.bids?.[0]?.buyer_id || '')}', '${d.bids?.[0]?.payment_intent_id || ''}')">End Early</button>` : ''}
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function renderEarnings() {
-        const tbody = document.querySelector('#earnings-table tbody');
-        tbody.innerHTML = '';
-        if(!earnings || earnings.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5">No earnings yet.</td></tr>';
-            return;
-        }
-        earnings.forEach(e => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${new Date(e.created_at).toLocaleDateString()}</td>
-                <td>${e.dataset_title || 'Dataset'}</td>
-                <td>$${(e.amount || 0).toLocaleString()}</td>
-                <td>$${(e.platform_fee || 0).toLocaleString()}</td>
-                <td style="color: var(--primary); font-weight:bold;">$${(e.seller_payout || 0).toLocaleString()}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function populateSettings() {
-        if(profile) {
-            document.getElementById('set-business-name').value = profile.business_name || '';
-            document.getElementById('set-industry').value = profile.industry || '';
-            document.getElementById('set-city').value = profile.city || '';
-            document.getElementById('set-state').value = profile.state || '';
-            if (document.getElementById('set-country')) {
-                document.getElementById('set-country').value = profile.country || '';
-            }
-            document.getElementById('set-paypal').value = profile.paypal_email || '';
-        }
-    }
-
-    document.getElementById('settings-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = e.target.querySelector('.btn-submit');
-        btn.innerText = 'Saving...';
-        const fields = {
-            business_name: document.getElementById('set-business-name').value,
-            industry: document.getElementById('set-industry').value,
-            city: document.getElementById('set-city').value,
-            state: document.getElementById('set-state').value,
-            country: document.getElementById('set-country') ? document.getElementById('set-country').value : '',
-            paypal_email: document.getElementById('set-paypal').value
-        };
-
-        if(window.DVSupabase && window.DVSupabase.profiles) {
-            await DVSupabase.profiles.update(userId, fields);
-            alert('Settings saved successfully!');
-            loadData(); // reload
-        } else {
-            alert('Demo mode: settings saved locally.');
-        }
-        btn.innerText = 'Save Settings';
-    });
-
-    window.endEarly = async function(datasetId, winnerId, paymentIntentId) {
-        if(!confirm('Are you sure you want to end this auction early? The highest bidder will win and be charged.')) return;
-
-        if (!winnerId || !paymentIntentId) {
-            alert('No bids have been placed on this dataset yet.');
-            return;
-        }
-
-        try {
-            const identity = window.netlifyIdentity;
-            const token    = identity?.currentUser()?.token?.access_token;
-            const res = await fetch('/.netlify/functions/capture-payment', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-                body: JSON.stringify({ paymentIntentId, datasetId, winnerId }),
-            });
-            const result = await res.json();
-            if (!res.ok) throw new Error(result.error || 'Payment capture failed');
-
-            // Also trigger delivery email
-            await fetch('/.netlify/functions/release-dataset', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-                body: JSON.stringify({ datasetId, buyerEmail: result.transaction?.buyer_email, buyerName: '' }),
-            });
-
-            alert('Auction ended! Payment captured and dataset delivered to buyer.');
-            loadData();
-        } catch (err) {
-            alert('Error ending auction: ' + err.message);
-        }
-    }
-
-    function setupRealtime() {
-        if(window.DVSupabase && window.DVSupabase.bids && datasets.length > 0) {
-            datasets.forEach(d => {
-                if(d.status === 'active') {
-                    DVSupabase.bids.subscribeToDataset(d.id, (newBid) => {
-                        showBidToast(d.title, newBid.amount);
-                    });
-                }
-            });
-        }
-    }
-
-    function showBidToast(title, amount) {
-        const feed = document.getElementById('bid-feed');
-        // remove placeholder
-        if(feed.querySelector('p')) feed.innerHTML = '';
-        
-        const div = document.createElement('div');
-        div.className = 'toast';
-        div.innerHTML = `<strong>New Bid!</strong> $${amount} placed on <em>${title}</em>`;
-        feed.prepend(div);
-        
-        // auto reload datasets to update bids count and top bid
-        if(window.DVSupabase) {
-            DVSupabase.datasets.getBySeller(userId).then(res => { datasets = res.data || []; renderDatasets(); computeAndRenderStats(); });
-        }
-    }
-
-    // Init
-    loadData();
+    await loadAll();
+    setInterval(() => { if (!document.hidden) loadAll(); }, 30000);
 });
-</script>
 
+function showTab() {
+    const tab = ['buying', 'selling', 'settings'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'buying';
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('tab--active', t.dataset.tab === tab));
+    ['buying', 'selling', 'settings'].forEach(n => document.getElementById('tab-' + n).classList.toggle('hidden', n !== tab));
+}
+
+async function loadAll() {
+    const safe = p => p.catch(err => { console.warn(err); return { data: null, failed: true }; });
+    const [l, s, p, b] = await Promise.all([
+        safe(DVSupabase.datasets.mine()),
+        safe(DVSupabase.transactions.sales()),
+        safe(DVSupabase.transactions.purchases()),
+        safe(DVSupabase.bids.mine()),
+    ]);
+    if ([l, s, p, b].some(r => r.failed)) DV.Toast.error('Some of your info didn\'t load. We\'ll keep trying.');
+    listings  = l.data || listings;
+    sales     = s.data || sales;
+    purchases = p.data || purchases;
+    bids      = b.data || bids;
+    renderBuying();
+    renderSelling();
+}
+
+/* ── Buying ───────────────────────────────────────────── */
+function renderBuying() {
+    const pEl = document.getElementById('purchases');
+    pEl.innerHTML = purchases.length ? purchases.map(t => `
+        <div class="item-row">
+            <div class="item-row__main">
+                <div class="item-row__title">${esc(t.dataset_title)}</div>
+                <div class="item-row__meta">Bought ${shortDate(t.created_at)} for ${money(t.amount, 2)}</div>
+            </div>
+            <div class="item-row__side">
+                <a href="dataset.html?id=${encodeURIComponent(t.dataset_id)}" class="btn btn--ghost btn--sm">Details</a>
+                <button class="btn btn--primary" data-download="${esc(t.dataset_id)}">⬇ Download file</button>
+            </div>
+        </div>`).join('')
+        : empty('🛍️', 'Nothing bought yet', 'When you win an auction, your file will be right here, ready to download.', '<a href="marketplace.html" class="btn btn--accent">Browse data</a>');
+
+    // Show each listing once, using your most recent bid on it
+    const latest = new Map();
+    bids.forEach(b => { if (!latest.has(b.dataset_id)) latest.set(b.dataset_id, b); });
+    const rows = [...latest.values()].filter(b => b.status !== 'won');
+    const bEl = document.getElementById('bids');
+    bEl.innerHTML = rows.length ? rows.map(b => {
+        const open = b.dataset_status === 'active';
+        let pill, action = '';
+        if (b.status === 'active' && open) pill = '<span class="pill pill--green">🏆 You\'re winning</span>';
+        else if (open) { pill = '<span class="pill pill--orange">Outbid</span>'; action = `<a href="dataset.html?id=${encodeURIComponent(b.dataset_id)}" class="btn btn--accent btn--sm">Bid again</a>`; }
+        else if (b.status === 'payment_failed') pill = '<span class="pill pill--red">Card declined</span>';
+        else pill = '<span class="pill pill--gray">Ended — not charged</span>';
+        return `
+        <div class="item-row">
+            <div class="item-row__main">
+                <div class="item-row__title"><a href="dataset.html?id=${encodeURIComponent(b.dataset_id)}">${esc(b.dataset_title)}</a></div>
+                <div class="item-row__meta">Your bid ${money(b.amount, 2)}${open ? ` · Top bid ${money(b.current_top_bid, 2)} · ${timeLeft(b.auction_end)}` : ''}</div>
+            </div>
+            <div class="item-row__side">${pill}${action}</div>
+        </div>`;
+    }).join('')
+        : bids.length
+            ? '<p class="text-secondary">No open bids right now.</p>'
+            : empty('🔎', 'No bids yet', 'Find data you like and place a bid. You only pay if you win.', '');
+
+    document.getElementById('count-buying').textContent = purchases.length + rows.filter(b => b.dataset_status === 'active').length;
+    document.querySelectorAll('[data-download]').forEach(btn => btn.onclick = () => download(btn));
+}
+
+async function download(btn) {
+    const old = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Preparing…';
+    try {
+        await DVSupabase.datasets.download(btn.dataset.download);
+        DV.Toast.success('Downloaded! Check your Downloads folder.');
+    } catch (err) {
+        DV.Toast.error(err.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = old;
+    }
+}
+
+/* ── Selling ──────────────────────────────────────────── */
+function renderSelling() {
+    const earned = sales.reduce((s, t) => s + (t.seller_payout || 0), 0);
+    const live = listings.filter(d => d.status === 'active');
+    document.getElementById('stat-earned').textContent = money(earned, 2);
+    document.getElementById('stat-live').textContent = live.length;
+    document.getElementById('stat-bids').textContent = listings.reduce((s, d) => s + (d.bid_count || 0), 0);
+    document.getElementById('count-selling').textContent = live.length;
+
+    const nudges = [];
+    if (!profile.payout_email && !profile.payout_details) nudges.push(`<div class="alert alert--warning mb-4"><span class="alert__icon">💵</span><div><strong>Tell us where to send your money.</strong> Add your PayPal email in <a href="#settings" class="underline">My account</a> so we can pay you when your data sells.</div></div>`);
+    if (!profile.verified && listings.length) nudges.push(`<div class="alert alert--info mb-4"><span class="alert__icon">✓</span><div><strong>Get the Verified badge.</strong> Verified businesses get more bids. <a href="#settings" class="underline">Upload one document</a> — it takes a minute.</div></div>`);
+    document.getElementById('seller-nudges').innerHTML = nudges.join('');
+
+    const statusPill = d => ({
+        active:  '<span class="pill pill--green">Live</span>',
+        closing: '<span class="pill pill--orange">Finishing sale…</span>',
+        sold:    `<span class="pill pill--teal">Sold for ${money(d.sold_price, 2)}</span>`,
+        ended:   `<span class="pill pill--gray">${d.end_reason === 'reserve_not_met' ? 'Ended — below your minimum' : d.end_reason === 'payment_failed' ? 'Ended — buyer card declined' : 'Ended — no bids'}</span>`,
+    }[d.status] || `<span class="pill pill--gray">${esc(d.status)}</span>`);
+
+    document.getElementById('listings').innerHTML = listings.length ? listings.map(d => `
+        <div class="item-row">
+            <div class="item-row__main">
+                <div class="item-row__title"><a href="dataset.html?id=${encodeURIComponent(d.id)}">${esc(d.title)}</a></div>
+                <div class="item-row__meta">
+                    ${d.bid_count ? `Top bid <strong>${money(d.current_top_bid, 2)}</strong> · ${d.bid_count} bid${d.bid_count === 1 ? '' : 's'}` : `Starts at ${money(d.starting_bid, 2)} · no bids yet`}
+                    · Your minimum ${money(d.reserve_price, 2)}${d.status === 'active' ? ' · ' + timeLeft(d.auction_end) : ''}
+                </div>
+            </div>
+            <div class="item-row__side">
+                ${statusPill(d)}
+                ${d.status === 'active' && d.bid_count ? `<button class="btn btn--accent btn--sm" data-sell="${esc(d.id)}">Sell now</button>` : ''}
+                <a href="dataset.html?id=${encodeURIComponent(d.id)}" class="btn btn--ghost btn--sm">View</a>
+            </div>
+        </div>`).join('')
+        : empty('📤', 'You haven\'t listed anything yet', 'Upload a spreadsheet of your sales, inventory or customer visits. It takes about 5 minutes.', '<a href="upload.html" class="btn btn--accent">Sell my first data</a>');
+
+    document.getElementById('sales').innerHTML = sales.length ? sales.map(t => `
+        <div class="item-row">
+            <div class="item-row__main">
+                <div class="item-row__title">${esc(t.dataset_title)}</div>
+                <div class="item-row__meta">Sold ${shortDate(t.created_at)} for ${money(t.amount, 2)} · fee ${money(t.platform_fee, 2)}</div>
+            </div>
+            <div class="item-row__side">
+                <span class="item-row__price text-primary">${money(t.seller_payout, 2)}</span>
+                ${t.payout_status === 'paid' ? '<span class="pill pill--green">Paid</span>' : '<span class="pill pill--orange">Payout on the way</span>'}
+            </div>
+        </div>`).join('')
+        : '<p class="text-secondary">No sales yet. When something sells, you\'ll see your money here.</p>';
+
+    document.querySelectorAll('[data-sell]').forEach(btn => btn.onclick = () => sellNow(btn));
+}
+
+async function sellNow(btn) {
+    const d = listings.find(x => x.id === btn.dataset.sell);
+    if (!d) return;
+    const below = d.current_top_bid < d.reserve_price;
+    const payout = d.current_top_bid * 0.95;
+    const msg = below
+        ? `The top bid (${money(d.current_top_bid, 2)}) is BELOW your secret minimum of ${money(d.reserve_price, 2)}.\n\nSell anyway? You'll receive ${money(payout, 2)} after the 5% fee.`
+        : `End the auction now and sell to the top bidder for ${money(d.current_top_bid, 2)}?\n\nYou'll receive ${money(payout, 2)} after the 5% fee.`;
+    if (!confirm(msg)) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Selling…';
+    try {
+        const r = await DVSupabase.datasets.sellNow(d.id, below);
+        if (r.outcome === 'sold') DV.Toast.success(`Sold for ${money(r.sold_price, 2)}! The buyer has been charged and notified.`);
+        else DV.Toast.error(r.reason === 'payment_failed' ? 'The buyer\'s card was declined, so the auction ended without a sale.' : 'The auction ended without a sale.');
+        await loadAll();
+    } catch (err) {
+        DV.Toast.error(err.message);
+        btn.disabled = false;
+        btn.textContent = 'Sell now';
+    }
+}
+
+/* ── Settings ─────────────────────────────────────────── */
+function renderProfile() {
+    const name = profile.business_name || profile.full_name || 'there';
+    document.getElementById('greeting').textContent = `Hi, ${name} 👋`;
+    document.getElementById('set-business').value = profile.business_name || '';
+    document.getElementById('set-name').value = profile.full_name || '';
+    document.getElementById('set-industry').value = profile.industry || '';
+    document.getElementById('set-city').value = profile.city || '';
+    document.getElementById('set-state').value = profile.state || '';
+    document.getElementById('set-country').value = profile.country || '';
+    document.getElementById('set-payout').value = profile.payout_email || profile.paypal_email || '';
+    document.getElementById('set-payout-notes').value = profile.payout_details || '';
+    document.getElementById('set-email').textContent = DVAuthManager.user?.email || '';
+    renderVerify();
+}
+
+function renderVerify() {
+    const el = document.getElementById('verify-status');
+    if (profile.verified) el.innerHTML = '<span class="pill pill--green">✓ Your business is verified</span>';
+    else if (profile.verification_status === 'pending_review') el.innerHTML = '<span class="pill pill--orange">⏳ Document received — we\'re reviewing it</span>';
+    else el.innerHTML = '<span class="pill pill--gray">Not verified yet</span>';
+}
+
+async function saveSettings(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type=submit]');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try {
+        const { data } = await DVSupabase.profiles.save({
+            business_name:  document.getElementById('set-business').value,
+            full_name:      document.getElementById('set-name').value,
+            industry:       document.getElementById('set-industry').value,
+            city:           document.getElementById('set-city').value,
+            state:          document.getElementById('set-state').value,
+            country:        document.getElementById('set-country').value,
+            payout_email:   document.getElementById('set-payout').value,
+            payout_details: document.getElementById('set-payout-notes').value,
+        });
+        profile = data;
+        renderProfile();
+        renderSelling();
+        DV.Toast.success('Saved!');
+    } catch (err) {
+        DV.Toast.error(err.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save my details';
+    }
+}
+
+async function uploadVerification(e) {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return DV.Toast.error('That file is over 5 MB. Please use a smaller photo or PDF.');
+    const label = document.querySelector('label[for=verify-file]');
+    label.textContent = '⏳ Checking your document…';
+    try {
+        const { data } = await DVSupabase.profiles.uploadVerificationDoc(null, file, document.getElementById('doc-type').value);
+        profile.verified = data.verified;
+        profile.verification_status = data.status;
+        renderVerify();
+        renderSelling();
+        DV.Toast.success(data.verified ? 'You\'re verified! Your listings now show the ✓ badge.' : 'Thanks! We\'ll review your document within 1 business day.');
+    } catch (err) {
+        DV.Toast.error(err.message);
+    } finally {
+        label.textContent = '📄 Choose document';
+    }
+}
+
+function empty(icon, title, body, action) {
+    return `<div class="empty"><div class="empty__icon">${icon}</div><div class="empty__title">${title}</div><p class="mb-4">${body}</p>${action}</div>`;
+}
+</script>
 </body>
 </html>

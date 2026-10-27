@@ -14,22 +14,7 @@
     <script src="js/app.js" defer></script>
 </head>
 <body>
-    <nav class="nav">
-        <div class="nav__inner container flex justify-between items-center">
-            <a href="index.html" class="nav__logo font-bold text-lg flex items-center gap-4">
-                <span class="nav__logo-icon">🔐</span> DataVault
-            </a>
-            <div class="nav__links hidden md:flex items-center gap-6">
-                <a href="marketplace.html" class="nav__link">Marketplace</a>
-                <a href="onboard.html" class="nav__link">For Sellers</a>
-                <a href="faq.html" class="nav__link">Help</a>
-            </div>
-            <div class="nav__actions flex items-center gap-4">
-                <a href="login.html" class="btn btn--outline btn--sm">Log In</a>
-                <a href="onboard.html" class="btn btn--accent btn--sm">Start Selling</a>
-            </div>
-        </div>
-    </nav>
+    <nav class="nav"></nav>
     <main>
         <section class="section container container--narrow animate-fade-up">
             <h1 class="text-xl font-bold mb-4 text-primary">Privacy Policy</h1>
@@ -52,7 +37,7 @@
             <div class="card p-6 mb-4">
                 <details>
                     <summary class="font-bold text-lg cursor-pointer">3. Third-Party Services</summary>
-                    <p class="mt-4 text-secondary text-sm">We share data with trusted third-party service providers such as Supabase (database), Stripe (payments), and Google OAuth (authentication) to facilitate our services.</p>
+                    <p class="mt-4 text-secondary text-sm">We share data with trusted third-party service providers such as Netlify (hosting, sign-in and file storage), Stripe (payments), Resend (email), Google (optional sign-in and automated document checks) to facilitate our services.</p>
                 </details>
             </div>
 
@@ -73,7 +58,7 @@
             <div class="card p-6">
                 <details>
                     <summary class="font-bold text-lg cursor-pointer">6. Contact Us</summary>
-                    <p class="mt-4 text-secondary text-sm">If you have questions about this Privacy Policy, please contact us at <a href="mailto:privacy@datavault.io" class="text-accent font-bold">privacy@datavault.io</a>.</p>
+                    <p class="mt-4 text-secondary text-sm">If you have questions about this Privacy Policy, please reach us through our <a href="contact.html" class="text-accent font-bold">contact form</a>.</p>
                 </details>
             </div>
         </section>
@@ -86,13 +71,13 @@
                     <a href="index.html" class="footer__logo font-bold text-lg text-primary mb-4 flex items-center gap-2">
                         <span>🔐</span> DataVault
                     </a>
-                    <p class="footer__tagline text-sm">Empowering small businesses to monetize their most valuable asset — their data.</p>
+                    <p class="footer__tagline text-sm">Helping small businesses earn money from the data they already have.</p>
                 </div>
                 <div>
                     <h4 class="footer__col-title font-bold mb-4">Platform</h4>
                     <ul class="flex flex-col gap-3 text-sm">
                         <li><a href="marketplace.html" class="footer__link">Marketplace</a></li>
-                        <li><a href="onboard.html" class="footer__link">For Sellers</a></li>
+                        <li><a href="upload.html" class="footer__link">Sell your data</a></li>
                         <li><a href="pricing.html" class="footer__link">Pricing & Fees</a></li>
                         <li><a href="index.html#how-it-works" class="footer__link">How It Works</a></li>
                     </ul>
@@ -117,7 +102,7 @@
             </div>
             <div class="divider mb-6"></div>
             <div class="footer__bottom flex justify-between items-center text-xs">
-                <p>© 2026 DataVault Inc. All rights reserved. Encrypted & Verified Data Exchange.</p>
+                <p>© 2026 DataVault. All rights reserved.</p>
             </div>
         </div>
     </footer>

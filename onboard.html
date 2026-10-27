@@ -3,273 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vendor Onboarding - DataVault</title>
+    <title>Set Up Your Account | DataVault</title>
     <link rel="stylesheet" href="styles/main.css">
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script><script src="js/config.js"></script>
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script src="js/config.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
-    <style>
-        /* Minimal custom styles for confetti that are not in main.css */
-        .confetti-container {
-            position: relative;
-            width: 100%;
-            height: 200px;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .confetti {
-            width: 10px;
-            height: 10px;
-            background-color: #f00;
-            position: absolute;
-            animation: confetti-fall 3s ease-in-out infinite;
-            border-radius: 50%;
-        }
-        .confetti:nth-child(1) { left: 10%; background-color: #0D9488; animation-delay: 0s; }
-        .confetti:nth-child(2) { left: 30%; background-color: #F97316; animation-delay: 0.2s; }
-        .confetti:nth-child(3) { left: 50%; background-color: #3b82f6; animation-delay: 0.4s; }
-        .confetti:nth-child(4) { left: 70%; background-color: #eab308; animation-delay: 0.1s; }
-        .confetti:nth-child(5) { left: 90%; background-color: #a855f7; animation-delay: 0.3s; }
-        .confetti:nth-child(6) { left: 20%; background-color: #ef4444; animation-delay: 0.5s; }
-        .confetti:nth-child(7) { left: 40%; background-color: #10b981; animation-delay: 0.2s; }
-        .confetti:nth-child(8) { left: 60%; background-color: #f97316; animation-delay: 0.6s; }
-        .confetti:nth-child(9) { left: 80%; background-color: #0ea5e9; animation-delay: 0.1s; }
-        @keyframes confetti-fall {
-            0% { transform: translateY(100px) scale(0); opacity: 1; }
-            50% { transform: translateY(-50px) scale(1.5); opacity: 1; }
-            100% { transform: translateY(-150px) scale(0); opacity: 0; }
-        }
-        .shake { animation: shake 0.5s; }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            50% { transform: translateX(10px); }
-            75% { transform: translateX(-10px); }
-        }
-    </style>
+    <script>window.DV_NO_AUTH_REDIRECT = true;</script>
 </head>
 <body>
+    <nav class="nav"></nav>
 
-    <header class="nav">
-        <div class="nav__inner container">
-            <a href="index.html" class="nav__logo">
-                <span class="nav__logo-icon">🔐</span> DataVault
-            </a>
-            <div class="nav__hamburger">☰</div>
-            <nav class="nav__links">
-                <a href="marketplace.html" class="nav__link">Marketplace</a>
-                <a href="onboard.html" class="nav__link nav__link--active">For Sellers</a>
-                <a href="index.html#how-it-works" class="nav__link">How It Works</a>
-                <a href="faq.html" class="nav__link">Help</a>
-            </nav>
-            <div class="nav__actions flex items-center gap-4">
-                <a href="marketplace.html" class="btn btn--outline btn--sm">Browse Data</a>
-                <button class="btn btn--outline btn--sm" onclick="DVAuthManager.openLogin()">Log In</button>
-                <button class="btn btn--accent btn--sm" onclick="DVAuthManager.openSignup()">Start Selling</button>
+    <main class="page">
+        <div class="container--narrow">
+
+            <div id="step-form" class="card card__body card__body--lg animate-fade-up hidden">
+                <h1 class="section-title mb-2" style="font-size:var(--fs-3xl)">Welcome! Tell us about you 👋</h1>
+                <p class="text-secondary mb-6">Just a few details so buyers know who they're dealing with. You can change these any time.</p>
+
+                <form id="profile-form" novalidate>
+                    <div class="form-group mb-4">
+                        <label class="form-label" for="business-name">Business name *</label>
+                        <input type="text" id="business-name" class="input input--lg" placeholder="e.g. Rosa's Bakery" maxlength="100" required>
+                        <div class="form-hint text-xs text-secondary mt-2">Buying for yourself? Just put your own name.</div>
+                        <div class="form-error hidden" id="error-business-name">Please enter your business name (or your own name).</div>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="form-label" for="industry">What kind of business is it?</label>
+                        <select id="industry" class="input input--lg">
+                            <option value="">Choose one (optional)</option>
+                            <option>Retail store</option>
+                            <option>Restaurant</option>
+                            <option>Bakery</option>
+                            <option>Coffee shop</option>
+                            <option>Boutique</option>
+                            <option>Hair or beauty salon</option>
+                            <option>Auto repair</option>
+                            <option>Gym or fitness</option>
+                            <option>Florist</option>
+                            <option>Hardware store</option>
+                            <option>Pet shop</option>
+                            <option>Pharmacy</option>
+                            <option>Cleaning or laundry</option>
+                            <option>Landscaping</option>
+                            <option>Catering or food truck</option>
+                            <option>Online shop</option>
+                            <option>Professional services</option>
+                            <option>Researcher / data buyer</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+
+                    <div class="grid-3 gap-4 mb-6">
+                        <div class="form-group">
+                            <label class="form-label" for="city">City</label>
+                            <input type="text" id="city" class="input" placeholder="e.g. Austin" maxlength="60">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="state">State / Region</label>
+                            <input type="text" id="state" class="input" placeholder="e.g. TX" maxlength="60">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="country">Country</label>
+                            <input type="text" id="country" class="input" placeholder="e.g. United States" maxlength="60" value="United States">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn--accent btn--xl btn--full" id="save-btn">Continue →</button>
+                </form>
+            </div>
+
+            <div id="step-done" class="card card__body card__body--lg text-center hidden animate-fade-up">
+                <div class="text-6xl mb-4">🎉</div>
+                <h1 class="section-title mb-2" style="font-size:var(--fs-3xl)" id="done-heading">You're all set!</h1>
+                <p class="text-secondary mb-8">What would you like to do first?</p>
+                <div class="grid-2 gap-4">
+                    <a href="upload.html" class="card card__body text-center" style="border:2px solid var(--c-accent)">
+                        <div class="text-4xl mb-2">💰</div>
+                        <div class="font-bold text-lg">Sell my data</div>
+                        <p class="text-sm text-secondary mt-2">Upload a spreadsheet and let buyers bid on it.</p>
+                    </a>
+                    <a href="marketplace.html" class="card card__body text-center" style="border:2px solid var(--c-primary)">
+                        <div class="text-4xl mb-2">🛒</div>
+                        <div class="font-bold text-lg">Buy data</div>
+                        <p class="text-sm text-secondary mt-2">Browse real data from local businesses.</p>
+                    </a>
+                </div>
+                <a href="dashboard.html" class="btn btn--ghost mt-6">Or go to my dashboard</a>
             </div>
         </div>
-    </header>
-
-    <main class="section container container--narrow mt-8 mb-8 animate-fade-up">
-        
-        <div class="progress-steps mb-8">
-            <div class="step step--active" id="step-indicator-1">
-                <div class="step__wrap">
-                    <div class="step__bubble">1</div>
-                    <div class="step__label">Info</div>
-                </div>
-                <div class="step__connector"></div>
-            </div>
-            <div class="step" id="step-indicator-2">
-                <div class="step__wrap">
-                    <div class="step__bubble">2</div>
-                    <div class="step__label">Verify</div>
-                </div>
-                <div class="step__connector"></div>
-            </div>
-            <div class="step" id="step-indicator-3">
-                <div class="step__wrap">
-                    <div class="step__bubble">3</div>
-                    <div class="step__label">Payout</div>
-                </div>
-                <div class="step__connector"></div>
-            </div>
-            <div class="step" id="step-indicator-4">
-                <div class="step__wrap">
-                    <div class="step__bubble">4</div>
-                    <div class="step__label">Done</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Step 1: Business Info -->
-        <div id="step-1" class="card card__body card__body--lg">
-            <h2 class="section-title mb-2">Tell us about your business 🏢</h2>
-            <p class="text-secondary mb-6">Let's get your seller profile set up.</p>
-            
-            <div class="form-group mb-4">
-                <label class="form-label" for="business-name">Business Name</label>
-                <input type="text" id="business-name" class="input input--lg" placeholder="e.g. Rosa's Bakery">
-                <div class="form-error hidden" id="error-business-name">Please enter your business name.</div>
-            </div>
-            
-            <div class="form-group mb-4">
-                <label class="form-label" for="industry">Industry</label>
-                <select id="industry" class="input input--lg">
-                    <option value="">Select your industry...</option>
-                    <option value="Retail">Retail</option>
-                    <option value="Restaurant">Restaurant</option>
-                    <option value="Bakery">Bakery</option>
-                    <option value="Coffee Shop">Coffee Shop</option>
-                    <option value="Boutique">Boutique</option>
-                    <option value="Hair Salon">Hair Salon</option>
-                    <option value="Auto Repair">Auto Repair</option>
-                    <option value="Gym">Gym</option>
-                    <option value="Florist">Florist</option>
-                    <option value="Hardware Store">Hardware Store</option>
-                    <option value="Pet Shop">Pet Shop</option>
-                    <option value="Pharmacy">Pharmacy</option>
-                    <option value="Dry Cleaning">Dry Cleaning</option>
-                    <option value="Landscaping">Landscaping</option>
-                    <option value="Catering">Catering</option>
-                    <option value="Food Truck">Food Truck</option>
-                    <option value="Photography">Photography</option>
-                    <option value="Tutoring">Tutoring</option>
-                    <option value="Bookkeeping">Bookkeeping</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-            
-            <div class="grid-3 gap-4 mb-4">
-                <div class="form-group">
-                    <label class="form-label" for="city">City</label>
-                    <input type="text" id="city" class="input" placeholder="e.g. London, Toronto, Austin">
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="state">State / Region / Province</label>
-                    <input type="text" id="state" class="input" placeholder="e.g. ON, England, TX">
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="country">Country</label>
-                    <input type="text" id="country" class="input" placeholder="e.g. United Kingdom, Canada, US">
-                </div>
-            </div>
-            
-            <div class="form-group mb-6">
-                <label class="form-label" for="email">Business Email</label>
-                <input type="email" id="email" class="input input--lg" placeholder="hello@rosasbakery.com">
-                <div class="form-error hidden" id="error-email">Please enter a valid email address.</div>
-            </div>
-            
-            <button class="btn btn--primary btn--lg btn--full" onclick="handleStep1()">Continue →</button>
-        </div>
-
-        <!-- Step 2: Verify Business -->
-        <div id="step-2" class="card card__body card__body--lg hidden">
-            <h2 class="section-title mb-2">Let's confirm you're a real business 🏪</h2>
-            <p class="text-secondary mb-6">We just need one official document. This protects every seller and buyer on the platform. It takes 30 seconds.</p>
-            
-            <div class="form-group mb-6">
-                <label class="form-label" for="doc-type">Document Type</label>
-                <select id="doc-type" class="input">
-                    <option value="license">Business License</option>
-                    <option value="ein">EIN Confirmation Letter</option>
-                    <option value="tax">Tax Document</option>
-                    <option value="utility">Utility Bill with Business Name</option>
-                </select>
-            </div>
-            
-            <div class="dropzone mb-6" id="verify-dropzone">
-                <div class="dropzone__icon text-4xl mb-2">📄</div>
-                <h3 class="dropzone__title" id="upload-title">Click to upload or drag & drop</h3>
-                <p class="dropzone__sub" id="upload-sub">JPG, PNG, PDF (max 10MB)</p>
-                <input type="file" class="dropzone__input" id="verify-file" accept=".jpg,.png,.pdf">
-            </div>
-
-            <div class="alert alert--success mb-6 hidden" id="verify-success">
-                <span class="alert__icon">✅</span>
-                <div>
-                    <strong class="alert__title">Document submitted!</strong>
-                    <p>We'll review within 24 hours. You can start selling right away.</p>
-                </div>
-            </div>
-            
-            <button class="btn btn--primary btn--lg btn--full" onclick="nextStep(2)">Continue →</button>
-        </div>
-
-        <!-- Step 3: Connect Payout -->
-        <div id="step-3" class="card card__body card__body--lg hidden">
-            <h2 class="section-title mb-2">How should we pay you? 💳</h2>
-            <p class="text-secondary mb-6">DataVault takes a flat 5% platform fee on all sales. You keep the rest.</p>
-            
-            <div class="grid-2 gap-4 mb-6">
-                <div id="stripe-btn" class="card card--accent card__body text-center cursor-pointer hover:border-accent">
-                    <div class="text-3xl mb-2">🏦</div>
-                    <h3 class="font-bold mb-1">Connect Stripe</h3>
-                    <p class="text-sm text-secondary">Bank account direct deposit</p>
-                </div>
-                <div id="paypal-btn" class="card card__body text-center cursor-pointer hover:border-primary">
-                    <div class="text-3xl mb-2">🅿️</div>
-                    <h3 class="font-bold mb-1">Connect PayPal</h3>
-                    <p class="text-sm text-secondary">Enter your PayPal email</p>
-                </div>
-            </div>
-
-            <div id="paypal-form" class="form-group mb-6 hidden">
-                <label class="form-label" for="paypal-email">PayPal Email</label>
-                <input type="email" id="paypal-email" class="input input--lg" placeholder="paypal@business.com">
-            </div>
-            
-            <div class="text-center mb-6">
-                <a href="#" class="text-sm text-secondary underline" onclick="nextStep(3); return false;">Skip for now (you can add this later)</a>
-            </div>
-            
-            <button class="btn btn--primary btn--lg btn--full" onclick="handleStep3()">Continue →</button>
-        </div>
-
-        <!-- Step 4: Success -->
-        <div id="step-4" class="card card__body card__body--lg hidden text-center">
-            <div class="confetti-container mb-4">
-                <div class="text-6xl z-10 relative">🎉</div>
-                <div class="confetti"></div>
-                <div class="confetti"></div>
-                <div class="confetti"></div>
-                <div class="confetti"></div>
-                <div class="confetti"></div>
-                <div class="confetti"></div>
-                <div class="confetti"></div>
-                <div class="confetti"></div>
-                <div class="confetti"></div>
-            </div>
-            
-            <h2 class="section-title mb-2" id="success-heading">You're all set!</h2>
-            <p class="text-secondary mb-8">Your DataVault account is live. Start listing your data and let buyers compete for it.</p>
-            
-            <div class="flex flex-col gap-4">
-                <a href="upload.html" class="btn btn--accent btn--xl btn--full">Upload My First Dataset →</a>
-                <a href="dashboard.html" class="btn btn--outline btn--lg btn--full">Go to My Dashboard</a>
-            </div>
-        </div>
-
     </main>
 
-    <!-- Footer -->
     <footer class="footer section section--sm text-secondary">
         <div class="container">
             <div class="footer__grid grid grid-4 gap-8 mb-8">
                 <div>
-                    <a href="index.html" class="footer__logo font-bold text-lg text-primary mb-4 flex items-center gap-2">
-                        <span>🔐</span> DataVault
-                    </a>
-                    <p class="footer__tagline text-sm">Empowering small businesses to monetize their most valuable asset — their data.</p>
+                    <a href="index.html" class="footer__logo font-bold text-lg text-primary mb-4 flex items-center gap-2"><span>🔐</span> DataVault</a>
+                    <p class="footer__tagline text-sm">Helping small businesses earn money from the data they already have.</p>
                 </div>
                 <div>
                     <h4 class="footer__col-title font-bold mb-4">Platform</h4>
                     <ul class="flex flex-col gap-3 text-sm">
                         <li><a href="marketplace.html" class="footer__link">Marketplace</a></li>
-                        <li><a href="onboard.html" class="footer__link">For Sellers</a></li>
+                        <li><a href="upload.html" class="footer__link">Sell your data</a></li>
                         <li><a href="pricing.html" class="footer__link">Pricing & Fees</a></li>
                         <li><a href="index.html#how-it-works" class="footer__link">How It Works</a></li>
                     </ul>
@@ -294,281 +131,64 @@
             </div>
             <div class="divider mb-6"></div>
             <div class="footer__bottom flex justify-between items-center text-xs">
-                <p>© 2026 DataVault Inc. All rights reserved. Encrypted & Verified Data Exchange.</p>
+                <p>© 2026 DataVault. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
-    <script src="js/app.js" defer></script>
+    <script src="js/app.js"></script>
     <script>
-        let currentUser = null;
+    'use strict';
+    document.addEventListener('DOMContentLoaded', async () => {
+        if (!(await DVAuthManager.requireAuth())) return;
+        const back = DVAuthManager.safeReturnTo(new URLSearchParams(location.search).get('returnTo'));
+        const p = DVAuthManager.profile;
 
-        async function initAuth() {
-            // Wait briefly for Netlify Identity widget session restoration
-            await new Promise(r => setTimeout(r, 250));
-
-            currentUser = window.netlifyIdentity?.currentUser() || window.DVAuthManager?.user || null;
-
-            // Demo mode check
-            if (!currentUser && (window.DV_CONFIG?.DEMO_MODE || window.location.search.includes('demo'))) {
-                window.DVAuthManager?.enableDemoUser('seller');
-                currentUser = window.DVAuthManager?.user;
-            }
-
-            // Restore any previously entered form values from sessionStorage
-            const pendingData = sessionStorage.getItem('pending_onboarding');
-            if (pendingData) {
-                try {
-                    const parsed = JSON.parse(pendingData);
-                    if (parsed.business_name && document.getElementById('business-name')) {
-                        document.getElementById('business-name').value = parsed.business_name;
-                    }
-                    if (parsed.industry && document.getElementById('industry')) {
-                        document.getElementById('industry').value = parsed.industry;
-                    }
-                    if (parsed.city && document.getElementById('city')) {
-                        document.getElementById('city').value = parsed.city;
-                    }
-                    if (parsed.state && document.getElementById('state')) {
-                        document.getElementById('state').value = parsed.state;
-                    }
-                    if (parsed.email && document.getElementById('email')) {
-                        document.getElementById('email').value = parsed.email;
-                    }
-                    sessionStorage.removeItem('pending_onboarding');
-                } catch (e) {
-                    console.warn('Could not restore pending onboarding data', e);
-                }
-            }
-
-            // Pre-fill email from logged-in user if input is currently empty
-            if (currentUser?.email) {
-                const emailInput = document.getElementById('email');
-                if (emailInput && !emailInput.value) {
-                    emailInput.value = currentUser.email;
-                }
-            }
-
-            // If user has an existing seller profile, show step 4
-            if (currentUser?.id) {
-                try {
-                    const res = await window.DVSupabase.profiles.get(currentUser.id);
-                    const profile = res?.data;
-                    if (profile && (profile.role === 'seller' || profile.role === 'both')) {
-                        document.getElementById('step-1').classList.add('hidden');
-                        document.getElementById('step-indicator-1').classList.remove('step--active');
-                        document.getElementById('step-indicator-1').classList.add('step--done');
-                        document.getElementById('step-indicator-2').classList.add('step--done');
-                        document.getElementById('step-indicator-3').classList.add('step--done');
-                        document.getElementById('step-indicator-4').classList.add('step--active');
-                        
-                        document.getElementById('step-4').classList.remove('hidden');
-                        document.getElementById('success-heading').textContent = 'You already have an account!';
-                    }
-                } catch (e) {
-                    console.warn('Profile check warning', e);
-                }
-            }
+        // Already set up: carry on to where they were going
+        if (p && back) { location.href = back; return; }
+        if (p) {
+            document.getElementById('done-heading').textContent = `Welcome back, ${p.business_name || 'friend'}!`;
+            document.getElementById('step-done').classList.remove('hidden');
+            return;
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            await initAuth();
+        const name = DVAuthManager.user?.user_metadata?.full_name;
+        if (name) document.getElementById('business-name').value = name;
+        document.getElementById('step-form').classList.remove('hidden');
+        document.getElementById('business-name').focus();
 
-            if (window.netlifyIdentity) {
-                window.netlifyIdentity.on('init', user => {
-                    if (user && !currentUser) {
-                        currentUser = user;
-                        const emailInput = document.getElementById('email');
-                        if (emailInput && !emailInput.value && user.email) {
-                            emailInput.value = user.email;
-                        }
-                    }
-                });
-                window.netlifyIdentity.on('login', user => {
-                    if (user) {
-                        currentUser = user;
-                        const emailInput = document.getElementById('email');
-                        if (emailInput && !emailInput.value && user.email) {
-                            emailInput.value = user.email;
-                        }
-                    }
-                });
-            }
-        });
+        document.getElementById('profile-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            const nameEl = document.getElementById('business-name');
+            const ok = !!nameEl.value.trim();
+            nameEl.classList.toggle('input--error', !ok);
+            document.getElementById('error-business-name').classList.toggle('hidden', ok);
+            if (!ok) return nameEl.focus();
 
-        // Dropzone interaction
-        const verifyFile = document.getElementById('verify-file');
-        const verifySuccess = document.getElementById('verify-success');
-        const uploadTitle = document.getElementById('upload-title');
-        const uploadSub = document.getElementById('upload-sub');
-
-        if (verifyFile) {
-            verifyFile.addEventListener('change', async function() {
-                if (this.files && this.files.length > 0) {
-                    const file = this.files[0];
-                    if (!currentUser) return;
-                    
-                    const docType = document.getElementById('doc-type')?.value || '';
-                    uploadTitle.textContent = 'Analyzing and verifying document with AI...';
-                    uploadSub.textContent = 'Running automated verification. Please wait a moment.';
-                    
-                    try {
-                        const res = await window.DVSupabase.profiles.uploadVerificationDoc(currentUser.id, file, docType);
-                        verifySuccess.classList.remove('hidden');
-                        
-                        const alertTitle = verifySuccess.querySelector('.alert__title');
-                        const alertP = verifySuccess.querySelector('p');
-                        const nextBtn = document.querySelector('#step-2 button');
-
-                        if (res.data?.verified) {
-                            verifySuccess.className = 'alert alert--success mb-6';
-                            if (alertTitle) alertTitle.textContent = 'Business Verified Instantly! ✓';
-                            if (alertP) alertP.textContent = res.data?.verification?.note || 'Your official document was verified by AI. Your Verified Seller badge is now active!';
-                            uploadTitle.textContent = 'Verified successfully! ✓';
-                            uploadSub.textContent = `${file.name} (Verified)`;
-                            if (nextBtn) nextBtn.textContent = 'Continue as Verified Seller →';
-                        } else {
-                            verifySuccess.className = 'alert alert--warning mb-6';
-                            if (alertTitle) alertTitle.textContent = 'Document Verification Pending ⚠️';
-                            if (alertP) alertP.textContent = (res.data?.verification?.note || 'Document could not be verified automatically.') + ' You can upload a clearer copy or continue and our team will review it manually within 24 hours.';
-                            uploadTitle.textContent = 'Click to try another file';
-                            uploadSub.textContent = 'Upload a clear PDF, JPG, or PNG';
-                            if (nextBtn) nextBtn.textContent = 'Continue Anyway →';
-                        }
-                    } catch (e) {
-                        console.error('Upload failed', e);
-                        uploadTitle.textContent = 'Upload failed';
-                        uploadSub.textContent = 'Please try again.';
-                    }
-                }
-            });
-        }
-
-        async function handleStep1() {
-            const bName = document.getElementById('business-name');
-            const email = document.getElementById('email');
-            const industry = document.getElementById('industry').value;
-            const city = document.getElementById('city').value;
-            const state = document.getElementById('state').value;
-            const country = document.getElementById('country') ? document.getElementById('country').value.trim() : '';
-            
-            let isValid = true;
-            
-            if (!bName.value.trim()) {
-                isValid = false;
-                bName.classList.add('input--error');
-                document.getElementById('error-business-name').classList.remove('hidden');
-            } else {
-                bName.classList.remove('input--error');
-                document.getElementById('error-business-name').classList.add('hidden');
-            }
-            
-            if (!email.value.trim() || !email.value.includes('@')) {
-                isValid = false;
-                email.classList.add('input--error');
-                document.getElementById('error-email').classList.remove('hidden');
-            } else {
-                email.classList.remove('input--error');
-                document.getElementById('error-email').classList.add('hidden');
-            }
-
-            if (!isValid) {
-                const stepContainer = document.getElementById('step-1');
-                stepContainer.classList.add('shake');
-                setTimeout(() => stepContainer.classList.remove('shake'), 500);
-                return;
-            }
-
-            // Fresh check of currentUser in case identity just finished restoring
-            if (!currentUser) {
-                currentUser = window.netlifyIdentity?.currentUser() || window.DVAuthManager?.user || null;
-            }
-
-            if (!currentUser) {
-                // Save form in sessionStorage so user doesn't lose data after logging in
-                sessionStorage.setItem('pending_onboarding', JSON.stringify({
-                    business_name: bName.value.trim(),
-                    industry,
-                    city,
-                    state,
-                    email: email.value.trim()
-                }));
-                window.location.href = 'login.html?returnTo=' + encodeURIComponent(window.location.href);
-                return;
-            }
-
-            const btn = document.querySelector('#step-1 button');
-            const origText = btn ? btn.textContent : '';
-            if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
-
+            const btn = document.getElementById('save-btn');
+            btn.disabled = true;
+            btn.textContent = 'Saving…';
             try {
-                await window.DVSupabase.profiles.upsert({
-                    id: currentUser.id,
-                    email: email.value.trim(),
-                    role: 'seller',
-                    business_name: bName.value.trim(),
-                    industry: industry,
-                    city: city,
-                    state: state,
-                    country: country
+                await DVSupabase.profiles.save({
+                    business_name: nameEl.value,
+                    full_name:     DVAuthManager.user?.user_metadata?.full_name || '',
+                    industry:      document.getElementById('industry').value,
+                    city:          document.getElementById('city').value,
+                    state:         document.getElementById('state').value,
+                    country:       document.getElementById('country').value,
                 });
-                document.getElementById('success-heading').textContent = `You're all set, ${bName.value.trim()}!`;
-                nextStep(1);
-            } catch (e) {
-                console.error(e);
-                if (window.DV?.Toast?.error) {
-                    window.DV.Toast.error('Failed to save profile: ' + (e.message || 'Please try again.'));
-                } else {
-                    alert('Failed to save profile. Please try again.');
-                }
-            } finally {
-                if (btn) { btn.disabled = false; btn.textContent = origText; }
-            }
-        }
-
-        document.getElementById('stripe-btn').addEventListener('click', () => {
-            if (window.Toast && window.Toast.warning) {
-                window.Toast.warning("Stripe Connect setup coming soon! We'll email you instructions to set up your payout account.");
-            } else {
-                alert("Stripe Connect setup coming soon! We'll email you instructions to set up your payout account.");
+                if (back) { location.href = back; return; }
+                document.getElementById('done-heading').textContent = `You're all set, ${nameEl.value.trim()}!`;
+                document.getElementById('step-form').classList.add('hidden');
+                document.getElementById('step-done').classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (err) {
+                DV.Toast.error(err.message);
+                btn.disabled = false;
+                btn.textContent = 'Continue →';
             }
         });
-
-        document.getElementById('paypal-btn').addEventListener('click', () => {
-            document.getElementById('paypal-form').classList.remove('hidden');
-        });
-
-        async function handleStep3() {
-            const paypalEmail = document.getElementById('paypal-email').value.trim();
-            if (paypalEmail && currentUser) {
-                try {
-                    await window.DVSupabase.profiles.update(currentUser.id, { paypal_email: paypalEmail });
-                } catch (e) {
-                    console.error(e);
-                }
-            }
-            nextStep(3);
-        }
-
-        function nextStep(currentStep) {
-            const stepContainer = document.getElementById(`step-${currentStep}`);
-            
-            // Hide current step
-            stepContainer.classList.add('hidden');
-            
-            // Update indicators
-            document.getElementById(`step-indicator-${currentStep}`).classList.remove('step--active');
-            document.getElementById(`step-indicator-${currentStep}`).classList.add('step--done');
-            
-            if (currentStep < 4) {
-                document.getElementById(`step-indicator-${currentStep + 1}`).classList.add('step--active');
-                
-                // Show next step
-                const nextStepContainer = document.getElementById(`step-${currentStep + 1}`);
-                nextStepContainer.classList.remove('hidden');
-                nextStepContainer.classList.add('animate-fade-up');
-            }
-        }
+    });
     </script>
 </body>
 </html>

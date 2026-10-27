@@ -13,22 +13,7 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="nav">
-        <div class="nav__inner container flex justify-between items-center">
-            <a href="index.html" class="nav__logo font-bold text-lg flex items-center gap-4">
-                <span class="nav__logo-icon">🔐</span> DataVault
-            </a>
-            <div class="nav__links hidden md:flex items-center gap-6">
-                <a href="marketplace.html" class="nav__link">Marketplace</a>
-                <a href="onboard.html" class="nav__link">For Sellers</a>
-                <a href="#how-it-works" class="nav__link">How It Works</a>
-                <a href="faq.html" class="nav__link nav__link--active">Help</a>
-            </div>
-            <div class="nav__actions flex items-center gap-4">
-                <a href="login.html" class="btn btn--outline btn--sm">Log In</a>
-            </div>
-        </div>
-    </nav>
+    <nav class="nav"></nav>
 
     <!-- Page Header -->
     <header class="page-header section card--primary text-center animate-fade-up">
@@ -78,7 +63,7 @@
                             <span class="accordion-icon">➕</span>
                         </button>
                         <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
-                            Everything: spreadsheets, PDFs, Word docs, images, even photos of handwritten records. We convert and normalize it all.
+                            Spreadsheets work best — CSV is ideal (in Excel: File → Save As → CSV). You can also upload Excel files, PDFs and photos of paper records, up to 5 MB. We automatically remove customer details from CSV files and photos.
                         </div>
                     </div>
 
@@ -98,7 +83,7 @@
                             <span class="accordion-icon">➕</span>
                         </button>
                         <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
-                            Within 2 business days of a successful auction close. Direct to your bank account (Stripe) or PayPal.
+                            Within 5 business days of the sale. Add your PayPal email in My account → Your details, or tell us there that you prefer a bank transfer.
                         </div>
                     </div>
 
@@ -118,7 +103,7 @@
                             <span class="accordion-icon">➕</span>
                         </button>
                         <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
-                            Your file is encrypted with AES-256 before it ever leaves your device. We never see your raw data. Only the winning buyer receives a decryption key.
+                            Yes. For CSV and text files we first blank out personal columns (customer names, emails, phone numbers, addresses). The file is then encrypted (AES-256) before it is stored, and only the buyer who wins can download it.
                         </div>
                     </div>
                 </div>
@@ -163,7 +148,7 @@
                             <span class="accordion-icon">➕</span>
                         </button>
                         <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
-                            After winning, you'll receive a download link + decryption key by email within minutes of the auction closing.
+                            We email you as soon as you win. Then go to My dashboard → Buying and click <strong>Download file</strong>. It's a normal file that opens in Excel or Google Sheets — no keys or extra software needed.
                         </div>
                     </div>
 
@@ -208,7 +193,7 @@
                             <span class="accordion-icon">➕</span>
                         </button>
                         <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
-                            We require one official business document (business license, EIN letter, or utility bill). Our team reviews submissions within 24 hours.
+                            Then nothing sells, nobody is charged, and you pay nothing. Every bidder's card hold is released. You can list it again any time — or, while the auction is still running, choose to sell to the top bidder anyway from your dashboard.
                         </div>
                     </div>
 
@@ -218,7 +203,7 @@
                             <span class="accordion-icon">➕</span>
                         </button>
                         <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
-                            No. Your encryption key is derived from your account credentials. Our servers never process your plaintext data.
+                            Files are stored encrypted. To deliver a purchase, our system unlocks the file for the winning buyer only. Our staff do not open seller files except when you ask us to help with a support issue.
                         </div>
                     </div>
                 </div>
@@ -233,7 +218,7 @@
                             <span class="accordion-icon">➕</span>
                         </button>
                         <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
-                            Visa, Mastercard, American Express, PayPal, Apple Pay, and Google Pay — all powered by Stripe.
+                            Visa, Mastercard, American Express, Discover and other major cards, plus Apple Pay and Google Pay — all handled securely by Stripe.
                         </div>
                     </div>
 
@@ -253,7 +238,7 @@
                             <span class="accordion-icon">➕</span>
                         </button>
                         <div class="accordion-content hidden mt-4 text-secondary text-sm leading-relaxed">
-                            Currently USD only. More currencies coming in 2025.
+                            Currently US dollars (USD) only.
                         </div>
                     </div>
 
@@ -288,13 +273,13 @@
                     <a href="index.html" class="footer__logo font-bold text-lg text-primary mb-4 flex items-center gap-2">
                         <span>🔐</span> DataVault
                     </a>
-                    <p class="footer__tagline text-sm">Empowering small businesses to monetize their most valuable asset — their data.</p>
+                    <p class="footer__tagline text-sm">Helping small businesses earn money from the data they already have.</p>
                 </div>
                 <div>
                     <h4 class="footer__col-title font-bold mb-4">Platform</h4>
                     <ul class="flex flex-col gap-3 text-sm">
                         <li><a href="marketplace.html" class="footer__link">Marketplace</a></li>
-                        <li><a href="onboard.html" class="footer__link">For Sellers</a></li>
+                        <li><a href="upload.html" class="footer__link">Sell your data</a></li>
                         <li><a href="pricing.html" class="footer__link">Pricing & Fees</a></li>
                         <li><a href="index.html#how-it-works" class="footer__link">How It Works</a></li>
                     </ul>
@@ -319,13 +304,12 @@
             </div>
             <div class="divider mb-6"></div>
             <div class="footer__bottom flex justify-between items-center text-xs">
-                <p>© 2026 DataVault Inc. All rights reserved. Encrypted & Verified Data Exchange.</p>
+                <p>© 2026 DataVault. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
     <!-- Scripts -->
-    <script src="js/app.js" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Accordion Logic

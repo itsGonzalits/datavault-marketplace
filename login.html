@@ -47,18 +47,7 @@
 </head>
 <body>
 
-<nav class="nav">
-    <div class="nav__inner container flex justify-between items-center">
-        <a href="index.html" class="nav__logo font-bold text-lg flex items-center gap-4">
-            <span class="nav__logo-icon">🔐</span> DataVault
-        </a>
-        <div class="nav__links hidden md:flex items-center gap-6">
-            <a href="marketplace.html" class="nav__link">Marketplace</a>
-            <a href="faq.html" class="nav__link">Help</a>
-        </div>
-        <div class="nav__actions flex items-center gap-4"></div>
-    </div>
-</nav>
+<nav class="nav"></nav>
 
 <main style="min-height:calc(100vh - 70px);display:flex;align-items:center;justify-content:center;padding:40px 20px;">
     <div style="display:flex;gap:48px;align-items:center;max-width:880px;width:100%;flex-wrap:wrap;justify-content:center;">
@@ -66,10 +55,10 @@
         <!-- Left: Value props -->
         <div style="max-width:340px;flex:1;min-width:240px;">
             <h1 style="font-size:2rem;font-weight:800;line-height:1.2;margin-bottom:16px;">Your data.<br>Your <span style="color:var(--c-primary)">earnings</span>.</h1>
-            <p class="text-secondary mb-6">Join thousands of small businesses turning their operational data into income.</p>
+            <p class="text-secondary mb-6">Small businesses use DataVault to earn extra money from the records they already keep.</p>
             <ul class="feature-list">
                 <li><span style="color:var(--c-primary);font-size:1.2rem;">✓</span> Free to list — 5% only on sale</li>
-                <li><span style="color:var(--c-primary);font-size:1.2rem;">✓</span> AES-256 encrypted before upload</li>
+                <li><span style="color:var(--c-primary);font-size:1.2rem;">✓</span> One account to buy and sell</li>
                 <li><span style="color:var(--c-primary);font-size:1.2rem;">✓</span> Buyer pays via Stripe — secure</li>
                 <li><span style="color:var(--c-primary);font-size:1.2rem;">✓</span> Payout within 5 business days</li>
             </ul>
@@ -103,27 +92,14 @@
                 <!-- Auth form -->
                 <form id="auth-form" onsubmit="handleAuthSubmit(event)">
                     <div class="auth-input-group">
-                        <label class="auth-input-label" for="email-input">Work Email</label>
-                        <input type="email" id="email-input" class="auth-input" placeholder="you@company.com" required autocomplete="email">
+                        <label class="auth-input-label" for="email-input">Email</label>
+                        <input type="email" id="email-input" class="auth-input" placeholder="you@example.com" required autocomplete="email">
                     </div>
 
                     <div class="auth-input-group">
                         <label class="auth-input-label" for="password-input">Password</label>
                         <input type="password" id="password-input" class="auth-input" placeholder="••••••••" required autocomplete="current-password">
                         <button type="button" class="password-toggle" id="toggle-pw" onclick="togglePasswordVisibility()">👁️</button>
-                    </div>
-
-                    <!-- Signup Role Selection (hidden in login mode) -->
-                    <div id="role-selection-group" class="hidden">
-                        <label class="auth-input-label">Account Type</label>
-                        <div class="role-options">
-                            <div class="role-option active" id="role-seller" onclick="selectRole('seller')">
-                                💼 Sell Data
-                            </div>
-                            <div class="role-option" id="role-buyer" onclick="selectRole('buyer')">
-                                🔍 Buy Data
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Forgot password link (login mode) -->
@@ -138,7 +114,7 @@
 
                 <div style="margin-top:16px;text-align:center;">
                     <button type="button" onclick="openNetlifyModal()" style="background:none;border:none;color:var(--c-text-secondary);font-size:0.82rem;cursor:pointer;text-decoration:underline;">
-                        Trouble signing in? Open Identity popup
+                        Having trouble? Try the classic sign-in window
                     </button>
                 </div>
 
@@ -161,182 +137,61 @@
 <script src="js/app.js"></script>
 <script>
 'use strict';
+window.DV_NO_AUTH_REDIRECT = false;
 
-// Show demo section if running as local file
-if (window.DV_CONFIG?.DEMO_MODE) {
-    document.getElementById('demo-section')?.classList.remove('hidden');
-}
+if (window.DV_CONFIG?.DEMO_MODE) document.getElementById('demo-section')?.classList.remove('hidden');
 
-// If already logged in, redirect
 document.addEventListener('DOMContentLoaded', async () => {
-    if (window.netlifyIdentity) {
-        window.netlifyIdentity.on('init', user => {
-            if (user) redirectUser();
-        });
-        window.netlifyIdentity.on('login', () => {
-            window.netlifyIdentity.close();
-            redirectUser();
-        });
-        const existingUser = window.netlifyIdentity.currentUser();
-        if (existingUser) redirectUser();
-    }
+    if (new URLSearchParams(location.search).get('mode') === 'signup') switchAuthMode('signup');
+    await DVAuthManager.ready();
+    if (DVAuthManager.isLoggedIn) DVAuthManager.goHome();
 });
 
-async function redirectUser() {
-    const params   = new URLSearchParams(window.location.search);
-    const returnTo = params.get('returnTo');
-    if (returnTo && !returnTo.includes('login.html')) {
-        window.location.href = decodeURIComponent(returnTo);
-        return;
-    }
-
-    // Check profile role
-    const user = window.netlifyIdentity?.currentUser();
-    if (!user) return;
-
-    try {
-        let token = user.token?.access_token;
-        if (typeof user.jwt === 'function') {
-            try { token = await user.jwt(); } catch { token = user.token?.access_token; }
-        }
-        const response = await fetch(`/.netlify/functions/profile?user_id=${user.id}`, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {}
-        });
-        if (response.ok) {
-            const { profile } = await response.json();
-            if (profile?.role === 'seller') {
-                window.location.href = 'dashboard.html';
-                return;
-            } else if (profile?.role === 'buyer') {
-                window.location.href = 'buyer-dashboard.html';
-                return;
-            }
-        }
-        window.location.href = 'onboard.html';
-    } catch {
-        window.location.href = 'onboard.html';
-    }
-}
-
-async function signInWithGoogle() {
+function signInWithGoogle() {
+    if (window.DV_CONFIG?.DEMO_MODE) return DV.Toast.error('Google sign-in only works on the live site.');
     const btn = document.getElementById('google-btn');
-
-    if (window.DV_CONFIG?.DEMO_MODE) {
-        DV.Toast.error('Google sign-in requires running on the live deployed site. Try demo mode below.');
-        return;
-    }
-
-    if (btn) {
-        btn.disabled = true;
-        btn.style.opacity = '0.75';
-        btn.innerHTML = `
-            <svg style="animation: spin 1s linear infinite;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.25"/>
-                <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor"/>
-            </svg>
-            Redirecting to Google…
-        `;
-    }
-
-    try {
-        // Pre-check if Google provider is enabled in Netlify Identity settings
-        const settingsRes = await fetch('/.netlify/identity/settings').catch(() => null);
-        if (settingsRes && settingsRes.ok) {
-            const settings = await settingsRes.json();
-            if (settings.external && settings.external.google === false) {
-                restoreGoogleBtn();
-                DV.Toast.error('Google OAuth is not enabled in Netlify yet. Enable it under Site configuration > Identity > External providers > Google.');
-                return;
-            }
-        }
-
-        // Direct redirect to Google OAuth login URL
-        const authUrl = window.netlifyIdentity?.gotrue?.loginExternalUrl('google')
-            || '/.netlify/identity/authorize?provider=google';
-        window.location.href = authUrl;
-    } catch (err) {
-        console.error('Google sign-in error:', err);
-        restoreGoogleBtn();
-        DV.Toast.error('Could not connect to Google. Please try email magic link.');
-    }
-
-    function restoreGoogleBtn() {
-        if (btn) {
-            btn.disabled = false;
-            btn.style.opacity = '1';
-            btn.innerHTML = `
-                <svg width="20" height="20" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                Continue with Google
-            `;
-        }
-    }
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+    // Remember where to go after Google sends the visitor back
+    const back = DVAuthManager.safeReturnTo(new URLSearchParams(location.search).get('returnTo'));
+    try { if (back) sessionStorage.setItem('dv_return_to', back); } catch {}
+    DVAuthManager.signInWithGoogle();
 }
 
 let currentMode = 'login';
-let selectedRole = 'seller';
 
 function switchAuthMode(mode) {
     currentMode = mode;
     clearAlert();
-    const loginTab = document.getElementById('tab-login');
-    const signupTab = document.getElementById('tab-signup');
-    const roleGroup = document.getElementById('role-selection-group');
-    const forgotPw = document.getElementById('forgot-pw-group');
-    const submitBtn = document.getElementById('submit-btn');
-    const cardTitle = document.getElementById('card-title');
-    const cardSub = document.getElementById('card-sub');
-
-    if (mode === 'signup') {
-        loginTab.classList.remove('active');
-        signupTab.classList.add('active');
-        roleGroup.classList.remove('hidden');
-        forgotPw.classList.add('hidden');
-        submitBtn.textContent = 'Create Free Account →';
-        cardTitle.textContent = 'Create your account';
-        cardSub.textContent = 'Start monetizing or purchasing verified datasets';
-    } else {
-        signupTab.classList.remove('active');
-        loginTab.classList.add('active');
-        roleGroup.classList.add('hidden');
-        forgotPw.classList.remove('hidden');
-        submitBtn.textContent = 'Log In →';
-        cardTitle.textContent = 'Welcome back';
-        cardSub.textContent = 'Sign in to manage your datasets or place bids';
-    }
-}
-
-function selectRole(role) {
-    selectedRole = role;
-    document.getElementById('role-seller').classList.toggle('active', role === 'seller');
-    document.getElementById('role-buyer').classList.toggle('active', role === 'buyer');
+    const signup = mode === 'signup';
+    document.getElementById('tab-login').classList.toggle('active', !signup);
+    document.getElementById('tab-signup').classList.toggle('active', signup);
+    document.getElementById('forgot-pw-group').classList.toggle('hidden', signup);
+    document.getElementById('submit-btn').textContent = signup ? 'Create my free account →' : 'Log in →';
+    document.getElementById('card-title').textContent = signup ? 'Create your free account' : 'Welcome back';
+    document.getElementById('card-sub').textContent = signup ? 'One account lets you sell your data and buy from others.' : 'Log in to manage your listings and bids.';
+    document.getElementById('password-input').autocomplete = signup ? 'new-password' : 'current-password';
 }
 
 function togglePasswordVisibility() {
     const pw = document.getElementById('password-input');
     const btn = document.getElementById('toggle-pw');
-    if (pw.type === 'password') {
-        pw.type = 'text';
-        btn.textContent = '🙈';
-    } else {
-        pw.type = 'password';
-        btn.textContent = '👁️';
-    }
+    pw.type = pw.type === 'password' ? 'text' : 'password';
+    btn.textContent = pw.type === 'password' ? '👁️' : '🙈';
 }
 
-function showAlert(msg, isError = true) {
+function showAlert(msg, isError = true, html = '') {
     const el = document.getElementById('auth-alert');
-    if (!el) return;
     el.className = 'auth-alert ' + (isError ? 'auth-alert--error' : 'auth-alert--success');
-    el.innerHTML = msg;
+    el.textContent = msg;
+    if (html) el.insertAdjacentHTML('beforeend', html);
     el.style.display = 'block';
 }
 
 function clearAlert() {
     const el = document.getElementById('auth-alert');
-    if (el) {
-        el.style.display = 'none';
-        el.innerHTML = '';
-    }
+    el.style.display = 'none';
+    el.textContent = '';
 }
 
 async function handleAuthSubmit(e) {
@@ -345,77 +200,71 @@ async function handleAuthSubmit(e) {
     const email = document.getElementById('email-input').value.trim();
     const password = document.getElementById('password-input').value;
     const btn = document.getElementById('submit-btn');
+    const gotrue = window.netlifyIdentity?.gotrue;
+    if (!gotrue) return showAlert('Sign-in is still loading. Please try again in a moment.');
+    if (currentMode === 'signup' && password.length < 8) return showAlert('Please choose a password with at least 8 characters.');
 
-    if (!window.netlifyIdentity) {
-        showAlert('Authentication service is initializing. Please try again in a moment.');
-        return;
-    }
-
-    const origText = btn.textContent;
+    const orig = btn.textContent;
     btn.disabled = true;
     btn.textContent = 'Please wait…';
-
     try {
-        if (currentMode === 'login') {
-            await window.netlifyIdentity.gotrue.login(email, password, true);
-            showAlert('Signed in successfully! Redirecting…', false);
-            setTimeout(() => { redirectUser(); }, 600);
-        } else {
-            const signupRes = await window.netlifyIdentity.gotrue.signup(email, password, { role: selectedRole });
-            if (signupRes.confirmation_sent_at) {
-                showAlert('✨ Account created! We sent a confirmation link to <strong>' + email + '</strong>. Please click the link in your email to verify and sign in.', false);
+        if (currentMode === 'signup') {
+            const res = await gotrue.signup(email, password);
+            if (res.confirmation_sent_at && !res.confirmed_at) {
+                showAlert(`Almost done! We sent a confirmation link to ${email}. Click it to finish signing up (check your spam folder too).`, false);
                 btn.disabled = false;
-                btn.textContent = origText;
-            } else {
-                showAlert('✨ Account created successfully! Logging you in…', false);
-                await window.netlifyIdentity.gotrue.login(email, password, true);
-                setTimeout(() => { redirectUser(); }, 600);
+                btn.textContent = orig;
+                return;
             }
         }
+        await gotrue.login(email, password, true);
+        showAlert('Signed in! Taking you to your account…', false);
+        // Reload the session through the widget so every page sees it
+        window.location.href = await DVAuthManager.homeFor();
     } catch (err) {
         btn.disabled = false;
-        btn.textContent = origText;
-        const msg = err.json?.error_description || err.json?.msg || err.message || 'Authentication failed';
-        if (msg.toLowerCase().includes('email not confirmed')) {
-            showAlert('⚠️ Your email has not been confirmed yet. Please check your inbox for the confirmation email.<br><a href="#" onclick="resendConfirmation(\'' + email + '\'); return false;" style="color:#991b1b;font-weight:700;text-decoration:underline;">Click here to resend confirmation email</a>');
+        btn.textContent = orig;
+        const msg = err.json?.error_description || err.json?.msg || err.message || 'Sign-in failed';
+        if (/not confirmed/i.test(msg)) {
+            showAlert('Please confirm your email first — look for our message in your inbox (or spam folder). ', true,
+                `<a href="#" onclick="resendConfirmation();return false" style="color:#991b1b;font-weight:700;text-decoration:underline">Send it again</a>`);
+        } else if (/invalid|no user|password/i.test(msg) && currentMode === 'login') {
+            showAlert('That email and password don\'t match. Try again, or use "Forgot password?" below.');
+        } else if (/already registered|exists/i.test(msg)) {
+            showAlert('You already have an account with that email. Please log in instead.');
+            switchAuthMode('login');
         } else {
-            showAlert('❌ ' + msg);
+            showAlert(msg);
         }
     }
 }
 
-async function resendConfirmation(email) {
-    try {
-        await window.netlifyIdentity.gotrue.signup(email, 'DummyPass123!@#');
-    } catch (_) {}
-    showAlert('📬 Confirmation email resent to ' + email + '. Please check your inbox and spam folder.', false);
+async function resendConfirmation() {
+    const email = document.getElementById('email-input').value.trim();
+    const password = document.getElementById('password-input').value;
+    try { await window.netlifyIdentity.gotrue.signup(email, password); } catch (_) {}
+    showAlert(`If ${email} still needs confirming, we've sent the link again. Please check your inbox and spam folder.`, false);
 }
 
 async function handleForgotPassword(e) {
     e.preventDefault();
     const email = document.getElementById('email-input').value.trim();
-    if (!email) {
-        showAlert('Please enter your work email above first to reset your password.');
-        return;
-    }
+    if (!email) return showAlert('Type your email address above first, then click "Forgot password?" again.');
     try {
         await window.netlifyIdentity.gotrue.requestPasswordRecovery(email);
-        showAlert('📬 Password recovery link sent to ' + email + '! Check your inbox.', false);
+        showAlert(`We sent a password reset link to ${email}. Check your inbox.`, false);
     } catch (err) {
-        showAlert('Could not send reset link: ' + (err.json?.msg || err.message));
+        showAlert('Could not send the reset link: ' + (err.json?.msg || err.message));
     }
 }
 
 function openNetlifyModal() {
-    if (window.netlifyIdentity) {
-        window.netlifyIdentity.open(currentMode === 'signup' ? 'signup' : 'login');
-    }
+    window.netlifyIdentity?.open(currentMode === 'signup' ? 'signup' : 'login');
 }
 
 function enterDemo() {
-    DVAuthManager.enableDemoUser('seller');
-    DV.Toast.success('Demo mode active! Redirecting to dashboard…');
-    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
+    DV.Toast.success('Demo mode — opening the dashboard…');
+    setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
 }
 </script>
 </body>

@@ -31,12 +31,7 @@ window.DV_CONFIG = {
   /* ── API Base URL ───────────────────────────────────────────
      Auto-detects: local dev vs. Netlify production.
      ----------------------------------------------------------- */
-  get FUNCTIONS_URL() {
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      return 'http://localhost:8888/.netlify/functions';
-    }
-    return '/.netlify/functions';
-  },
+  FUNCTIONS_URL: '/.netlify/functions',
 
   /* ── Site URL ───────────────────────────────────────────────
      Used for Netlify Identity redirect URLs.

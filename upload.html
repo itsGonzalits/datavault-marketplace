@@ -11,7 +11,6 @@
     <script src="js/config.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/crypto.js"></script>
     <style>
         .spin { animation: spin 1.5s linear infinite; display: inline-block; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -29,65 +28,41 @@
 </head>
 <body>
 
-    <nav class="nav">
-        <div class="nav__inner container flex justify-between items-center">
-            <a href="index.html" class="nav__logo font-bold text-lg flex items-center gap-4">
-                <span class="nav__logo-icon">🔐</span> DataVault
-            </a>
-            <div class="nav__links hidden md:flex items-center gap-6">
-                <a href="marketplace.html" class="nav__link">Marketplace</a>
-                <a href="dashboard.html" class="nav__link">My Dashboard</a>
-                <a href="faq.html" class="nav__link">Help</a>
-            </div>
-            <div class="nav__actions flex items-center gap-4">
-                <!-- Updated by auth.js -->
-            </div>
-        </div>
-    </nav>
+    <nav class="nav"></nav>
 
     <main class="section container container--narrow mt-8 mb-12">
 
         <!-- PHASE 1: Drop Zone -->
         <div id="phase-1" class="animate-fade-up text-center">
-            <h1 class="page-header__title mb-2">Upload Your Dataset</h1>
-            <p class="text-secondary mb-8 text-lg">Any file works — we encrypt it before it leaves your device 🔒</p>
+            <h1 class="page-header__title mb-2">Sell your data</h1>
+            <p class="text-secondary mb-8 text-lg">Drop in a spreadsheet of your sales, stock or visits. We remove your customers' personal details, lock the file, and help you write the listing.</p>
 
             <div class="dropzone p-12 mb-6 cursor-pointer" id="main-dropzone" onclick="document.getElementById('file-upload').click()">
                 <div class="dropzone__icon text-6xl mb-4 upload-float">🗂️</div>
-                <h3 class="dropzone__title text-2xl font-bold mb-2">Drop your file here — any format</h3>
-                <p class="dropzone__sub text-secondary mb-6">CSV, Excel, PDF, Word, JSON, images — anything goes</p>
-                <button class="btn btn--primary btn--lg" type="button">Browse Files</button>
+                <h3 class="dropzone__title text-2xl font-bold mb-2">Drop your file here</h3>
+                <p class="dropzone__sub text-secondary mb-6">or click to choose one from your computer</p>
+                <button class="btn btn--primary btn--lg" type="button">Choose a file</button>
                 <input type="file" id="file-upload" class="hidden">
             </div>
 
-            <div class="flex items-center justify-center gap-2 flex-wrap text-sm text-secondary">
-                <span class="badge badge--neutral">CSV</span> •
-                <span class="badge badge--neutral">XLSX</span> •
-                <span class="badge badge--neutral">PDF</span> •
-                <span class="badge badge--neutral">DOCX</span> •
-                <span class="badge badge--neutral">JSON</span> •
-                <span class="badge badge--neutral">PNG / JPG</span> •
-                <span class="ml-2">and more</span>
-            </div>
-            <p class="text-xs text-secondary mt-4">File size limit: 500MB · Encrypted with AES-256 before upload</p>
+            <p class="text-sm text-secondary">Works best with <strong>CSV</strong> files (in Excel: File → Save As → CSV). Also accepts Excel, PDF and photos of paper records. Up to 5 MB.</p>
+            <p class="text-sm mt-2">Not sure what to upload? Download a template:
+                <a class="text-primary underline" href="templates/sales_data_template.csv" download>Sales</a> ·
+                <a class="text-primary underline" href="templates/inventory_template.csv" download>Inventory</a> ·
+                <a class="text-primary underline" href="templates/customer_visits_template.csv" download>Customer visits</a> ·
+                <a class="text-primary underline" href="templates/pricing_template.csv" download>Prices</a></p>
 
             <!-- Simple Privacy & Anonymity Guarantee for Small Businesses -->
             <div class="card card__body mt-8 text-left" style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 12px; padding: 1.5rem;">
                 <div class="flex items-start gap-4">
                     <div style="font-size: 2.2rem; line-height: 1;">🛡️</div>
                     <div>
-                        <h4 style="font-weight: 700; font-size: 1.1rem; color: #166534; margin-bottom: 0.4rem;">100% Anonymized & Safe for Your Business</h4>
+                        <h4 style="font-weight: 700; font-size: 1.1rem; color: #166534; margin-bottom: 0.4rem;">Built to keep your business safe</h4>
                         <p style="font-size: 0.95rem; color: #15803D; margin: 0; line-height: 1.5;">
-                            <strong>No customer names or private secrets are ever shared.</strong> Our AI automatically removes personal names, emails, phone numbers, and addresses from your file before anyone sees it. You get paid for your market insights while your customers stay completely private.
+                            <strong>Your customers stay private.</strong> In CSV and text files we automatically blank out columns like customer names, emails, phone numbers and addresses before anything is stored. Please still check your file doesn't contain anything you wouldn't want a buyer to see.
                         </p>
                     </div>
                 </div>
-            </div>
-
-            <!-- Demo mode note -->
-            <div id="demo-upload-note" class="hidden alert alert--neutral mt-6">
-                <span class="alert__icon">🎭</span>
-                <div>Demo mode: file upload is simulated. Connect Supabase Storage to enable real uploads. <a href="setup/SETUP.md" class="underline">See SETUP.md</a></div>
             </div>
         </div>
 
@@ -101,24 +76,25 @@
             <p class="text-secondary text-sm flex items-center justify-center gap-2">
                 <span id="encrypt-status">🔓 Preparing encryption…</span>
             </p>
-            <p class="text-xs text-secondary mt-4">Your file never leaves your device unencrypted.</p>
+            <p class="text-xs text-secondary mt-4">This usually takes less than a minute.</p>
         </div>
 
         <!-- PHASE 3: Listing Details -->
         <div id="phase-3" class="hidden animate-fade-up">
             <div class="flex items-center gap-4 mb-6">
                 <button id="back-btn" class="btn btn--ghost btn--sm" onclick="goToPhase(1)">← Back</button>
-                <h1 class="page-header__title mb-0">Dataset Listing Details</h1>
+                <h1 class="page-header__title mb-0">Describe &amp; price your listing</h1>
             </div>
 
             <div class="alert alert--success mb-6">
                 <span class="alert__icon">🔒</span>
                 <div>
-                    <strong class="alert__title">File encrypted successfully!</strong>
-                    <p>Your data is protected with AES-256 encryption. Only the winning buyer receives the decryption key — after payment.</p>
+                    <strong class="alert__title">Your file is uploaded and locked 🔒</strong>
+                    <p>Only the buyer who wins your auction will be able to download it. We've filled in some details for you — check them and set your price.</p>
                 </div>
             </div>
 
+            <div id="scrub-warning" class="alert alert--warning mb-6 hidden"><span class="alert__icon">⚠️</span><div><strong>We couldn't check this file type for personal details.</strong> Please make sure it has no customer names, emails, phone numbers or addresses — or go back and upload it as a CSV instead.</div></div>
             <!-- File Summary -->
             <div class="card card__body mb-6" id="file-summary">
                 <div class="flex items-center gap-4">
@@ -127,21 +103,21 @@
                         <div class="font-bold" id="file-name-display">my-data.csv</div>
                         <div class="text-sm text-secondary" id="file-size-display">—</div>
                     </div>
-                    <span class="badge badge--success ml-auto">✓ Encrypted</span>
+                    <span class="badge badge--success ml-auto">✓ Locked</span>
                 </div>
             </div>
 
             <form id="publish-form" class="card card__body card__body--lg">
 
                 <div class="form-group mb-6">
-                    <label class="form-label" for="title">Dataset Title *</label>
+                    <label class="form-label" for="title">Listing title *</label>
                     <input type="text" id="title" class="input input--lg" placeholder="e.g. Downtown Café Sales Data 2023–2024" required>
-                    <div class="form-hint text-xs text-secondary mt-2">Be specific — buyers search by title</div>
+                    <div class="form-hint text-xs text-secondary mt-2">Say what it is, where, and when — e.g. "Austin bakery daily sales, 2023–2024"</div>
                 </div>
 
                 <div class="form-group mb-6">
                     <label class="form-label" for="desc">Description *</label>
-                    <textarea id="desc" class="input" rows="4" placeholder="What does this data contain? What time period? Why would a buyer find it valuable?" required></textarea>
+                    <textarea id="desc" class="input" rows="4" placeholder="What's in the file? What time period does it cover? Who might find it useful?" required></textarea>
                 </div>
 
                 <div class="form-group mb-6">
@@ -187,77 +163,73 @@
 
                 <div class="grid-2 gap-4 mb-6">
                     <div class="form-group">
-                        <label class="form-label" for="row-count">Approximate Row Count</label>
+                        <label class="form-label" for="row-count">Roughly how many rows?</label>
                         <input type="number" id="row-count" class="input" placeholder="e.g. 5000" min="1">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label" for="location-display-summary">Location Summary</label>
-                        <input type="text" id="location" class="input" placeholder="e.g. London, UK (or auto-combined)">
-                    </div>
+                    
                 </div>
 
                 <div class="grid-2 gap-4 mb-6">
                     <div class="form-group">
-                        <label class="form-label" for="date-start">Data Start Date</label>
+                        <label class="form-label" for="date-start">Data starts on</label>
                         <input type="date" id="date-start" class="input">
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="date-end">Data End Date</label>
+                        <label class="form-label" for="date-end">Data ends on</label>
                         <input type="date" id="date-end" class="input">
                     </div>
                 </div>
 
                 <div class="grid-2 gap-4 mb-6">
                     <div class="form-group">
-                        <label class="form-label" for="start-bid">Starting Bid *</label>
+                        <label class="form-label" for="start-bid">Starting price *</label>
                         <div style="position:relative">
                             <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--c-text-secondary);font-weight:600">$</span>
                             <input type="number" id="start-bid" class="input input--lg" style="padding-left:28px" placeholder="100" min="10" step="5" required>
                         </div>
-                        <div class="form-hint text-xs text-secondary mt-2">Bidding opens at this price</div>
+                        <div class="form-hint text-xs text-secondary mt-2">The first bid must be at least this. Most sellers start at $50–$200.</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="reserve">
-                            Secret Minimum Price *
-                            <span title="Auction won't close until bids reach this. Buyers never see this number." style="cursor:help">🔒</span>
+                            Secret minimum (optional) 🔒
                         </label>
                         <div style="position:relative">
                             <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--c-text-secondary);font-weight:600">$</span>
-                            <input type="number" id="reserve" class="input input--lg" style="padding-left:28px" placeholder="250" min="10" step="5" required>
+                            <input type="number" id="reserve" class="input input--lg" style="padding-left:28px" placeholder="Same as starting price" min="10" step="5">
                         </div>
-                        <div class="form-hint text-xs text-secondary mt-2">Only you see this. Auction closes only if bids reach it.</div>
+                        <div class="form-hint text-xs text-secondary mt-2">Only you see this. If bids don't reach it, nothing sells and you pay nothing.</div>
                     </div>
                 </div>
 
                 <div class="form-group mb-8">
-                    <label class="form-label">Auction Duration *</label>
+                    <label class="form-label">How long should the auction run? *</label>
                     <div class="grid-3 gap-3 mt-2">
-                        <div class="duration-option selected" data-days="7">
-                            <div class="label">7 Days</div>
+                        <div class="duration-option" data-days="3">
+                            <div class="label">3 days</div>
+                            <div class="sub">Quick sale</div>
+                        </div>
+                        <div class="duration-option selected" data-days="5">
+                            <div class="label">5 days</div>
                             <div class="sub">Most popular</div>
                         </div>
-                        <div class="duration-option" data-days="14">
-                            <div class="label">14 Days</div>
-                            <div class="sub">More exposure</div>
-                        </div>
-                        <div class="duration-option" data-days="30">
-                            <div class="label">30 Days</div>
-                            <div class="sub">Maximum reach</div>
+                        <div class="duration-option" data-days="6">
+                            <div class="label">6 days</div>
+                            <div class="sub">Longest</div>
                         </div>
                     </div>
-                    <input type="hidden" id="duration-days" value="7">
+                    <input type="hidden" id="duration-days" value="5">
                 </div>
 
                 <div class="card card--primary p-4 mb-6 flex items-center gap-4">
                     <div class="text-2xl">💰</div>
                     <div>
-                        <div class="font-bold">Platform Fee: 5%</div>
-                        <div class="text-sm text-secondary">Only charged when your data sells. If no bids meet your reserve, you pay nothing.</div>
+                        <div class="font-bold">DataVault fee: 5%, only if it sells</div>
+                        <div class="text-sm text-secondary">Example: sells for $200 → you get $190. If it doesn't sell, you pay nothing. You can also end the auction early and sell to the top bidder from your dashboard.</div>
                     </div>
                 </div>
 
                 <button type="submit" class="btn btn--accent btn--xl btn--full" id="publish-btn">
-                    Publish Dataset &amp; Start Earning 🚀
+                    Publish my listing 🚀
                 </button>
             </form>
         </div>
@@ -266,13 +238,16 @@
         <div id="phase-4" class="hidden text-center animate-fade-up">
             <div class="text-7xl mb-6">🎉</div>
             <h1 class="section-title font-bold mb-2">Your dataset is live!</h1>
-            <p class="text-secondary text-lg mb-8" id="live-message">Buyers can start bidding right now.</p>
+            <p class="text-secondary text-lg mb-4" id="live-message">Buyers can start bidding right now.</p>
+            <p class="text-secondary mb-8">We'll email you when it sells, or if it ends without a sale.</p>
             <div class="flex flex-col gap-4 max-w-sm mx-auto">
-                <a id="view-listing-btn" href="marketplace.html" class="btn btn--accent btn--xl btn--full">View My Listing →</a>
-                <a href="upload.html" class="btn btn--outline btn--lg btn--full">Upload Another Dataset</a>
-                <a href="dashboard.html" class="btn btn--ghost btn--lg btn--full">Go to Dashboard</a>
+                <a id="view-listing-btn" href="marketplace.html" class="btn btn--accent btn--xl btn--full">See my listing →</a>
+                <a href="upload.html" class="btn btn--outline btn--lg btn--full">Sell something else</a>
+                <a href="dashboard.html#selling" class="btn btn--ghost btn--lg btn--full">Go to my dashboard</a>
             </div>
         </div>
+
+    </main>
 
     <!-- Footer -->
     <footer class="footer section section--sm text-secondary mt-16">
@@ -282,13 +257,13 @@
                     <a href="index.html" class="footer__logo font-bold text-lg text-primary mb-4 flex items-center gap-2">
                         <span>🔐</span> DataVault
                     </a>
-                    <p class="footer__tagline text-sm">Empowering small businesses to monetize their most valuable asset — their data.</p>
+                    <p class="footer__tagline text-sm">Helping small businesses earn money from the data they already have.</p>
                 </div>
                 <div>
                     <h4 class="footer__col-title font-bold mb-4">Platform</h4>
                     <ul class="flex flex-col gap-3 text-sm">
                         <li><a href="marketplace.html" class="footer__link">Marketplace</a></li>
-                        <li><a href="onboard.html" class="footer__link">For Sellers</a></li>
+                        <li><a href="upload.html" class="footer__link">Sell your data</a></li>
                         <li><a href="pricing.html" class="footer__link">Pricing & Fees</a></li>
                         <li><a href="index.html#how-it-works" class="footer__link">How It Works</a></li>
                     </ul>
@@ -313,376 +288,230 @@
             </div>
             <div class="divider mb-6"></div>
             <div class="footer__bottom flex justify-between items-center text-xs">
-                <p>© 2026 DataVault Inc. All rights reserved. Encrypted & Verified Data Exchange.</p>
+                <p>© 2026 DataVault. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
     <script src="js/app.js"></script>
     <script src="js/crypto.js"></script>
-    <script src="js/normalize.js"></script>
     <script>
-    /* ── Upload Page Logic ─────────────────────────────────── */
+    /* ── Upload page ───────────────────────────────────────── */
     'use strict';
 
-    let selectedFile     = null;
-    let encryptedResult  = null;
+    const MAX_BYTES = 5 * 1024 * 1024;
+    const TEXT_TYPES = /\.(csv|txt|tsv|json)$/i;
+    let uploaded = null;          // { path, name, size, scrubbed }
+    let aiAnalysis = null;
     let selectedCategory = null;
-    let selectedDuration = 7;
-    let currentDatasetId = null;
-    let aiAnalysis       = null;
+    let selectedDuration = 5;
 
-    const toBase64 = file => new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = error => reject(error);
-    });
-
-    /* ── Auth check ──────────────────────────────────────────── */
     document.addEventListener('DOMContentLoaded', async () => {
-        const demoMode = window.DV_CONFIG?.DEMO_MODE;
-
-        if (demoMode) {
-            document.getElementById('demo-upload-note')?.classList.remove('hidden');
-            DVAuthManager.enableDemoUser('seller');
-        } else {
-            const ok = await DVAuthManager.requireSeller();
-            if (!ok) return;
-        }
-
+        if (!(await DVAuthManager.requireProfile())) return;
+        const p = DVAuthManager.profile || {};
+        document.getElementById('loc-city').value = p.city || '';
+        document.getElementById('loc-state').value = p.state || '';
+        document.getElementById('loc-country').value = p.country || '';
         initDropzone();
         initCategoryChips();
         initDurationOptions();
-        initPublishForm();
+        document.getElementById('publish-form').addEventListener('submit', e => { e.preventDefault(); handlePublish(); });
     });
 
-    /* ── Dropzone ──────────────────────────────────────────── */
     function initDropzone() {
-        const dz    = document.getElementById('main-dropzone');
+        const dz = document.getElementById('main-dropzone');
         const input = document.getElementById('file-upload');
-
-        ['dragenter','dragover','dragleave','drop'].forEach(e => {
-            dz.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); });
-            document.body.addEventListener(e, ev => ev.preventDefault());
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => {
+            dz.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); });
+            document.body.addEventListener(ev, e => e.preventDefault());
         });
-        ['dragenter','dragover'].forEach(e => dz.addEventListener(e, () => dz.classList.add('dropzone--active')));
-        ['dragleave','drop'].forEach(e => dz.addEventListener(e, () => dz.classList.remove('dropzone--active')));
-
-        dz.addEventListener('drop', ev => {
-            const files = ev.dataTransfer?.files;
-            if (files?.length) handleFile(files[0]);
-        });
-
-        input.addEventListener('change', () => {
-            if (input.files?.length) handleFile(input.files[0]);
-        });
+        ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, () => dz.classList.add('dropzone--over')));
+        ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, () => dz.classList.remove('dropzone--over')));
+        dz.addEventListener('drop', e => { const f = e.dataTransfer?.files?.[0]; if (f) handleFile(f); });
+        input.addEventListener('change', () => { const f = input.files?.[0]; input.value = ''; if (f) handleFile(f); });
     }
 
     async function handleFile(file) {
-        selectedFile = file;
+        if (file.size > MAX_BYTES) {
+            return DV.Toast.error(`That file is ${formatBytes(file.size)}. Please keep it under 5 MB — try saving it as CSV, or split it into smaller files.`);
+        }
+        if (!file.size) return DV.Toast.error('That file looks empty. Please choose another one.');
         goToPhase(2);
-        await encryptAndUpload(file);
+        await processFile(file);
     }
 
-    async function encryptAndUpload(file) {
-        const status  = document.getElementById('processing-status');
-        const bar     = document.getElementById('progress-bar');
-        const encStat = document.getElementById('encrypt-status');
+    async function processFile(file) {
+        const status = document.getElementById('processing-status');
+        const bar = document.getElementById('progress-bar');
+        const sub = document.getElementById('encrypt-status');
+        const step = (pct, title, detail) => { bar.style.width = pct + '%'; status.textContent = title; sub.textContent = detail; };
 
-        // Step 1 – read
-        status.textContent = '📖 Reading your file…';
-        bar.style.width = '20%';
-        await pause(600);
+        let cleanFile = file;
+        let meta = null;
+        let scrubbed = false;
 
-            // Step 2 – AI PII Scrubbing & Normalization
-            encStat.textContent = '🧠 AI scanning for personal names, emails & phone numbers…';
-            status.textContent  = '🛡️ Anonymizing & scrubbing PII…';
-            bar.style.width = '35%';
-
-            let cleanedFile = file;
-            let aiMeta = null;
-
-            try {
-                if (file.type.startsWith('image/')) {
-                    status.textContent = '📸 Extracting tables & text via Gemini OCR…';
-                    const base64 = await toBase64(file);
-                    const aiRes = await fetch('/api/ai-clean-and-summarize', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ base64Data: base64, mimeType: file.type, originalName: file.name })
-                    });
-                    const aiData = await aiRes.json();
-                    if (aiData.success && aiData.cleanedContent) {
-                        cleanedFile = new File([aiData.cleanedContent], file.name.replace(/\.[^/.]+$/, "") + '.csv', { type: 'text/csv' });
-                        aiMeta = aiData.metadata;
-                        console.log(`[AI Scrubber OCR] Extracted CSV from image. PII scrubbed.`);
-                    }
-                } else if (file.type.includes('text') || file.name.endsWith('.csv') || file.name.endsWith('.json') || file.name.endsWith('.txt')) {
-                    const text = await file.text();
-                    const aiRes = await fetch('/api/ai-clean-and-summarize', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ textContent: text, originalName: file.name })
-                    });
-                    const aiData = await aiRes.json();
-
-                    if (aiData.success && aiData.cleanedContent) {
-                        cleanedFile = new File([aiData.cleanedContent], file.name, { type: file.type || 'text/csv' });
-                        aiMeta = aiData.metadata;
-                        console.log(`[AI Scrubber] Removed ${aiData.piiRemovedCount} PII instances from dataset.`);
-                    }
+        try {
+            step(20, '📖 Reading your file…', 'Getting things ready');
+            if (TEXT_TYPES.test(file.name) || file.type.startsWith('text/')) {
+                step(40, '🛡️ Removing personal details…', 'Blanking out customer names, emails and phone numbers');
+                const res = await DVSupabase.datasets.prepare({ textContent: await file.text(), originalName: file.name });
+                if (res.success && res.cleanedContent) {
+                    cleanFile = new File([res.cleanedContent], file.name, { type: file.type || 'text/csv' });
+                    meta = res.metadata;
+                    scrubbed = true;
                 }
-            } catch (aiErr) {
-                console.warn('[AI Scrubber] AI auto-clean warning:', aiErr);
+            } else if (file.type.startsWith('image/') && file.size < 4 * 1024 * 1024) {
+                step(40, '📸 Reading your photo…', 'Turning it into a spreadsheet and removing personal details');
+                try {
+                    const res = await DVSupabase.datasets.prepare({ base64Data: await toBase64(file), mimeType: file.type, originalName: file.name });
+                    if (res.success && res.cleanedContent) {
+                        cleanFile = new File([res.cleanedContent], file.name.replace(/\.[^.]+$/, '') + '.csv', { type: 'text/csv' });
+                        meta = res.metadata;
+                        scrubbed = true;
+                    }
+                } catch (err) {
+                    console.warn('[upload] photo reading unavailable:', err.message);
+                }
             }
 
-            // Step 3 – Zero-Knowledge Encryption
-            encStat.textContent = '🔒 Encrypting with AES-256…';
-            status.textContent  = '🔒 Locking data in zero-knowledge vault…';
-            bar.style.width = '65%';
+            step(65, '🔒 Locking your file…', 'Encrypting it so only the winning buyer can open it');
+            const enc = await DVCrypto.encryptFile(cleanFile, p => { bar.style.width = (65 + p * 15) + '%'; });
 
-            try {
-                const isDemoMode = window.DV_CONFIG?.DEMO_MODE;
+            step(85, '☁️ Uploading…', 'Almost there');
+            const res = await DVSupabase.datasets.uploadFile(enc.encryptedBlob, cleanFile.name, enc.keyB64);
+            uploaded = { path: res.path, name: cleanFile.name, size: cleanFile.size, scrubbed };
 
-                if (isDemoMode) {
-                    await pause(1000);
-                    encryptedResult = {
-                        encryptedBlob: new Blob(['demo'], { type: 'application/octet-stream' }),
-                        keyB64: btoa('demo-encryption-key-' + Date.now()),
-                        originalName: cleanedFile.name,
-                        originalSize: cleanedFile.size,
-                    };
-                } else {
-                    encryptedResult = await DVCrypto.encryptFile(cleanedFile, p => {
-                        bar.style.width = (65 + p * 20) + '%';
-                    });
-                }
-
-                encStat.textContent = '🔒 Zero-Knowledge Encrypted!';
-                bar.style.width = '90%';
-                status.textContent = '☁️ Securely storing encrypted blob…';
-                await pause(400);
-
-                // Step 4 – upload
-                if (!isDemoMode) {
-                    const uploadResult = await DVSupabase.datasets.uploadFile(
-                        encryptedResult.encryptedBlob,
-                        cleanedFile.name,
-                    );
-                    encryptedResult.storagePath = uploadResult.path || null;
-                }
-
-                bar.style.width = '100%';
-                status.textContent = '✅ Anonymized & Encrypted!';
-                await pause(600);
-
-                // Move to phase 3 & Auto-fill AI Metadata
-                document.getElementById('file-name-display').textContent = file.name;
-                document.getElementById('file-size-display').textContent =
-                    formatBytes(cleanedFile.size) + ' (PII Scrubbed & Encrypted)';
-                document.getElementById('file-icon').textContent = getFileIcon(file.name);
-
-                if (aiMeta) {
-                    aiAnalysis = aiMeta.ai_analysis || null;
-                    if (aiMeta.title) document.getElementById('title').value = aiMeta.title;
-                    if (aiMeta.description) document.getElementById('desc').value = aiMeta.description;
-                    if (aiMeta.rowCount) document.getElementById('row-count').value = aiMeta.rowCount;
-                    if (aiMeta.category) {
-                        const chip = Array.from(document.querySelectorAll('.category-chip')).find(c => c.dataset.value.toLowerCase() === aiMeta.category.toLowerCase());
-                        if (chip) {
-                            chip.click();
-                        } else {
-                            const otherChip = Array.from(document.querySelectorAll('.category-chip')).find(c => c.dataset.value === 'Other');
-                            if (otherChip) {
-                                otherChip.click();
-                                const otherInput = document.getElementById('other-category-input');
-                                if (otherInput) {
-                                    otherInput.value = aiMeta.category;
-                                    otherInput.dispatchEvent(new Event('input'));
-                                }
-                            }
-                        }
-                    }
-                }
-
-                goToPhase(3);
-
-            } catch (err) {
-                status.textContent = '❌ Error: ' + err.message;
-                encStat.textContent = '⚠️ Processing failed';
-                console.error('[Upload] Error:', err);
-                DV.Toast.error('Upload failed: ' + err.message);
-                setTimeout(() => goToPhase(1), 3000);
-            }
+            step(100, '✅ Done!', '');
+            fillDetails(file, meta, scrubbed);
+            goToPhase(3);
+        } catch (err) {
+            console.error('[upload]', err);
+            DV.Toast.error(err.message || 'Upload failed. Please try again.');
+            goToPhase(1);
         }
+    }
 
-    /* ── Category chips ──────────────────────────────────────── */
+    function fillDetails(original, meta, scrubbed) {
+        document.getElementById('file-name-display').textContent = uploaded.name;
+        document.getElementById('file-size-display').textContent = formatBytes(uploaded.size) + (scrubbed ? ' · personal details removed' : '');
+        document.getElementById('file-icon').textContent = getFileIcon(uploaded.name);
+        document.getElementById('scrub-warning').classList.toggle('hidden', scrubbed);
+        aiAnalysis = null;
+        if (!meta) return;
+        aiAnalysis = meta.ai_analysis || null;
+        if (meta.title) document.getElementById('title').value = meta.title;
+        if (meta.description) document.getElementById('desc').value = meta.description;
+        if (meta.rowCount) document.getElementById('row-count').value = meta.rowCount;
+        if (meta.category) {
+            const chips = [...document.querySelectorAll('.category-chip')];
+            const chip = chips.find(c => c.dataset.value.toLowerCase() === meta.category.toLowerCase());
+            (chip || chips.find(c => c.dataset.value === 'Other'))?.click();
+        }
+    }
+
     function initCategoryChips() {
-        const otherContainer = document.getElementById('other-category-container');
+        const otherBox = document.getElementById('other-category-container');
         const otherInput = document.getElementById('other-category-input');
-
         document.querySelectorAll('.category-chip').forEach(chip => {
+            chip.setAttribute('role', 'button');
+            chip.tabIndex = 0;
+            chip.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); chip.click(); } });
             chip.addEventListener('click', () => {
                 document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('selected'));
                 chip.classList.add('selected');
-                const val = chip.dataset.value;
-                if (val === 'Other') {
-                    otherContainer.style.display = 'block';
-                    otherInput.focus();
-                    selectedCategory = otherInput.value.trim() || 'Other';
-                } else {
-                    otherContainer.style.display = 'none';
-                    selectedCategory = val;
-                }
-                document.getElementById('category').value = selectedCategory;
+                const other = chip.dataset.value === 'Other';
+                otherBox.style.display = other ? 'block' : 'none';
+                selectedCategory = other ? (otherInput.value.trim() || 'Other') : chip.dataset.value;
             });
         });
-
-        if (otherInput) {
-            otherInput.addEventListener('input', (e) => {
-                const customVal = e.target.value.trim();
-                selectedCategory = customVal || 'Other';
-                document.getElementById('category').value = selectedCategory;
-            });
-        }
+        otherInput.addEventListener('input', () => { selectedCategory = otherInput.value.trim() || 'Other'; });
     }
 
-    /* ── Duration options ────────────────────────────────────── */
     function initDurationOptions() {
         document.querySelectorAll('.duration-option').forEach(opt => {
+            opt.setAttribute('role', 'button');
+            opt.tabIndex = 0;
+            opt.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); opt.click(); } });
             opt.addEventListener('click', () => {
                 document.querySelectorAll('.duration-option').forEach(o => o.classList.remove('selected'));
                 opt.classList.add('selected');
                 selectedDuration = parseInt(opt.dataset.days, 10);
-                document.getElementById('duration-days').value = selectedDuration;
             });
-        });
-    }
-
-    /* ── Publish form ────────────────────────────────────────── */
-    function initPublishForm() {
-        const form = document.getElementById('publish-form');
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await handlePublish();
         });
     }
 
     async function handlePublish() {
         const btn = document.getElementById('publish-btn');
-
-        // Validate
-        const title    = document.getElementById('title').value.trim();
-        const desc     = document.getElementById('desc').value.trim();
-        const otherInput = document.getElementById('other-category-input');
-        const isOtherSelected = document.querySelector('.category-chip.selected')?.dataset.value === 'Other';
-        let category = selectedCategory || document.getElementById('category').value;
-        if (isOtherSelected) {
-            const customCat = otherInput ? otherInput.value.trim() : '';
-            if (!customCat) {
-                return DV.Toast.error('Please specify your custom category.');
-            }
-            category = customCat;
-        }
+        const title = document.getElementById('title').value.trim();
+        const desc = document.getElementById('desc').value.trim();
         const startBid = parseFloat(document.getElementById('start-bid').value);
-        const reserve  = parseFloat(document.getElementById('reserve').value);
+        const reserveRaw = document.getElementById('reserve').value;
+        const reserve = reserveRaw ? parseFloat(reserveRaw) : startBid;
 
-        if (!title)    return DV.Toast.error('Please enter a dataset title.');
-        if (!desc)     return DV.Toast.error('Please add a description.');
-        if (!category) return DV.Toast.error('Please select a category.');
-        if (!startBid || startBid < 10) return DV.Toast.error('Starting bid must be at least $10.');
-        if (!reserve  || reserve < startBid) return DV.Toast.error('Reserve must be at least equal to the starting bid.');
+        if (!uploaded) return DV.Toast.error('Please upload your file first.');
+        if (!title) return DV.Toast.error('Please give your listing a title.');
+        if (!desc) return DV.Toast.error('Please add a short description.');
+        if (!selectedCategory) return DV.Toast.error('Please pick a category.');
+        if (!(startBid >= 10)) return DV.Toast.error('The starting price must be at least $10.');
+        if (!(reserve >= startBid)) return DV.Toast.error('Your secret minimum can\'t be lower than the starting price.');
 
-        btn.disabled     = true;
-        btn.textContent  = '⏳ Publishing…';
+        const city = document.getElementById('loc-city').value.trim();
+        const state = document.getElementById('loc-state').value.trim();
+        const country = document.getElementById('loc-country').value.trim();
 
+        btn.disabled = true;
+        btn.textContent = 'Publishing…';
         try {
-            const isDemoMode = window.DV_CONFIG?.DEMO_MODE;
-            const user       = DVAuthManager.user || { id: 'demo-user' };
-            const auctionEnd = new Date(Date.now() + selectedDuration * 86400 * 1000).toISOString();
-
-            const rawLocation = document.getElementById('location').value.trim();
-            const cityVal     = document.getElementById('loc-city') ? document.getElementById('loc-city').value.trim() : '';
-            const stateVal    = document.getElementById('loc-state') ? document.getElementById('loc-state').value.trim() : '';
-            const countryVal  = document.getElementById('loc-country') ? document.getElementById('loc-country').value.trim() : '';
-
-            let finalLocation = rawLocation;
-            if (!finalLocation) {
-                finalLocation = [cityVal, stateVal, countryVal].filter(Boolean).join(', ');
-            }
-
-            const datasetPayload = {
-                seller_id:        user.id,
+            const { data } = await DVSupabase.datasets.create({
                 title,
                 description:      desc,
-                category,
-                location:         finalLocation || null,
-                country:          countryVal || null,
-                row_count:        parseInt(document.getElementById('row-count').value) || null,
+                category:         selectedCategory,
+                location:         [city, state, country].filter(Boolean).join(', ') || null,
+                country:          country || null,
+                row_count:        parseInt(document.getElementById('row-count').value, 10) || null,
                 date_range_start: document.getElementById('date-start').value || null,
                 date_range_end:   document.getElementById('date-end').value || null,
                 starting_bid:     startBid,
                 reserve_price:    reserve,
-                current_top_bid:  0,
-                auction_end:      auctionEnd,
-                status:           'active',
-                file_path:        encryptedResult?.storagePath || null,  // matches datasets.js + release-dataset.js
-                encryption_key:   encryptedResult?.keyB64 || null,
+                auction_days:     selectedDuration,
+                file_path:        uploaded.path,
                 ai_analysis:      aiAnalysis,
-                // Embed seller display info so dataset.html can render without a profile join
-                seller: {
-                    business_name: DVAuthManager.profile?.business_name || user.email || 'Seller',
-                    industry:      DVAuthManager.profile?.industry || null,
-                    verified:      DVAuthManager.profile?.verified || false,
-                },
-            };
-
-            const { data, error } = await DVSupabase.datasets.create(datasetPayload);
-            if (error) throw error;
-
-            currentDatasetId = data?.id || 'demo-' + Date.now();
-
-            // Update phase 4
-            document.getElementById('live-message').textContent =
-                `"${title}" is now live! Buyers can start bidding immediately.`;
-            if (currentDatasetId && !isDemoMode) {
-                document.getElementById('view-listing-btn').href = `dataset.html?id=${currentDatasetId}`;
-            }
-
-            DV.Toast.success('Dataset published successfully! 🎉');
+            });
+            document.getElementById('live-message').textContent = `"${title}" is now live! Buyers can start bidding right away.`;
+            document.getElementById('view-listing-btn').href = `dataset.html?id=${encodeURIComponent(data.id)}`;
             goToPhase(4);
-
         } catch (err) {
-            btn.disabled    = false;
-            btn.textContent = 'Publish Dataset & Start Earning 🚀';
-            DV.Toast.error('Publish failed: ' + err.message);
-            console.error('[Publish]', err);
+            DV.Toast.error(err.message);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Publish my listing 🚀';
         }
     }
 
-    /* ── Phase navigation ────────────────────────────────────── */
     function goToPhase(n) {
-        [1,2,3,4].forEach(i => {
-            document.getElementById('phase-' + i)?.classList.toggle('hidden', i !== n);
-        });
+        [1, 2, 3, 4].forEach(i => document.getElementById('phase-' + i)?.classList.toggle('hidden', i !== n));
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    /* ── Helpers ─────────────────────────────────────────────── */
-    function formatBytes(bytes) {
-        if (bytes < 1024)           return bytes + ' B';
-        if (bytes < 1024 * 1024)   return (bytes / 1024).toFixed(1) + ' KB';
-        return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+    function toBase64(file) {
+        return new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = () => resolve(String(r.result).split(',')[1]);
+            r.onerror = reject;
+            r.readAsDataURL(file);
+        });
+    }
+
+    function formatBytes(b) {
+        if (b < 1024) return b + ' B';
+        if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+        return (b / 1048576).toFixed(1) + ' MB';
     }
 
     function getFileIcon(name) {
         const ext = name.split('.').pop().toLowerCase();
-        const icons = { csv:'📊', xlsx:'📊', xls:'📊', pdf:'📄', docx:'📝', doc:'📝', json:'🗃️', png:'🖼️', jpg:'🖼️', jpeg:'🖼️', txt:'📝' };
-        return icons[ext] || '📁';
+        return { csv: '📊', xlsx: '📊', xls: '📊', pdf: '📄', docx: '📝', doc: '📝', json: '🗃️', png: '🖼️', jpg: '🖼️', jpeg: '🖼️', txt: '📝' }[ext] || '📁';
     }
-
-    function pause(ms) { return new Promise(r => setTimeout(r, ms)); }
     </script>
 </body>
 </html>

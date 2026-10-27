@@ -3,192 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marketplace | DataVault</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script><script src="js/config.js"></script>
+    <title>Browse Data | DataVault</title>
+    <meta name="description" content="Browse real data from real small businesses — sales, inventory, foot traffic and more. Bid on what you need.">
+    <link rel="stylesheet" href="styles/main.css">
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script src="js/config.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
-    
-    <link rel="stylesheet" href="styles/main.css">
     <style>
-        body { background-color: #FFFBF5; font-family: 'Outfit', sans-serif; margin: 0; color: #333; }
-        .nav { background: #fff; padding: 1rem 2rem; border-bottom: 1px solid #eaeaea; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-        .nav__logo { font-size: 1.5rem; font-weight: 700; color: #0D9488; text-decoration: none; }
-        .nav__links { display: flex; gap: 2rem; }
-        .nav__link { text-decoration: none; color: #555; font-weight: 500; }
-        .nav__link--active { color: #0D9488; font-weight: 600; }
-        .btn { padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; border: none; }
-        .btn--primary { background: #0D9488; color: #fff; }
-        .btn--accent { background: #F97316; color: #fff; }
-        .btn--ghost { background: transparent; color: #555; border: 1px solid transparent; }
-        .btn--ghost:hover { background: #f0f0f0; }
-        .btn--sm { padding: 0.25rem 0.75rem; font-size: 0.875rem; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-        .search-bar { background: #fff; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 2rem; display: flex; gap: 1rem; }
-        .input { flex: 1; padding: 1rem; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; font-family: 'Outfit', sans-serif; }
-        .search-btn { padding: 1rem 2rem; font-size: 1rem; }
-        .layout { display: flex; gap: 2rem; }
-        .sidebar { width: 240px; flex-shrink: 0; }
-        .main-content { flex: 1; }
-        .sort-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-        .filter-group { background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1rem; }
-        .filter-group__title { font-weight: 600; margin-bottom: 1rem; font-size: 1.1rem; }
-        .checkbox-label { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.9rem; cursor: pointer; }
-        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
-        
-        /* Dataset Card Styles */
-        .dataset-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #eaeaea; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; }
-        .dataset-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        .dataset-card__stripe { height: 6px; background: #0D9488; }
-        .dataset-card__body { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
-        .badge { font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600; }
-        .badge--primary { background: #E0F2FE; color: #0D9488; }
-        .badge--success { background: #dcfce7; color: #166534; margin-left: 0.5rem; }
-        .dataset-card__tags { margin-bottom: 0.5rem; }
-        .dataset-card__title { font-size: 1.1rem; font-weight: 600; margin: 0 0 0.5rem 0; color: #222; }
-        .dataset-card__meta { font-size: 0.85rem; color: #666; margin-bottom: 1rem; }
-        .bid-info { flex: 1; margin-bottom: 1rem; }
-        .bid-label { font-size: 0.75rem; color: #666; }
-        .bid-amount { color: #0D9488; font-weight: 700; font-size: 1.25rem; }
-        .bid-count { font-size: 0.75rem; color: #666; }
-        .dataset-card__footer { display: flex; align-items: center; justify-content: space-between; padding-top: 1rem; border-top: 1px solid #eaeaea; }
-        .timer { color: #F97316; font-weight: 600; font-size: 0.9rem; }
-        
-        .pagination { display: flex; justify-content: center; gap: 0.5rem; margin-top: 3rem; align-items: center; }
-        .page-num { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer; }
-        .page-num--active { background: #0D9488; color: #fff; font-weight: 600; }
-        .footer { background: #222; color: #fff; padding: 3rem 2rem; margin-top: 4rem; text-align: center; }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        .skeleton-card { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        
-        @media (max-width: 768px) {
-            .layout { flex-direction: column; }
-            .sidebar { width: 100%; }
-            .grid-3 { grid-template-columns: 1fr; }
-        }
+        .filters { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 1.5rem; }
+        @media (max-width: 900px) { .filters { grid-template-columns: 1fr 1fr; } .filters .search { grid-column: span 2; } }
+        @media (max-width: 520px) { .filters { grid-template-columns: 1fr; } .filters .search { grid-column: auto; } }
+        .listing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; }
+        .listing { display: flex; flex-direction: column; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-lg); overflow: hidden; transition: transform .15s, box-shadow .15s; color: inherit; }
+        .listing:hover { transform: translateY(-3px); box-shadow: var(--sh-lg); }
+        .listing__stripe { height: 5px; background: linear-gradient(90deg, var(--c-primary), var(--c-accent)); }
+        .listing__body { padding: 1.25rem; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+        .listing__title { font-weight: 700; font-size: 1.15rem; line-height: 1.3; }
+        .listing__meta { color: var(--c-text-secondary); font-size: 0.9rem; }
+        .listing__foot { display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--c-border-light); }
+        .listing__price { font-size: 1.4rem; font-weight: 800; color: var(--c-primary-dark); }
+        .listing__time { color: var(--c-accent-dark); font-weight: 600; font-size: 0.9rem; text-align: right; }
     </style>
 </head>
 <body>
 
-<nav class="nav">
-    <a href="index.html" class="nav__logo">🔐 DataVault</a>
-    <div class="nav__links">
-        <a href="marketplace.html" class="nav__link nav__link--active">Marketplace</a>
-        <a href="onboard.html" class="nav__link">For Sellers</a>
-        <a href="#how-it-works" class="nav__link">How It Works</a>
-        <a href="faq.html" class="nav__link">Help</a>
+<nav class="nav"></nav>
+
+<main class="page">
+    <div class="container">
+        <div class="mb-6">
+            <h1 class="page__title">Browse data from local businesses</h1>
+            <p class="text-secondary">Real numbers from real shops, cafés and service businesses. Bid on what you need — you only pay if you win.</p>
+        </div>
+
+        <div class="filters">
+            <input type="search" id="search" class="input search" placeholder="🔍  Search: e.g. bakery, Austin, inventory">
+            <select id="category" class="input" aria-label="Category">
+                <option value="">All categories</option>
+                <option>Retail Sales</option>
+                <option>E-Commerce</option>
+                <option value="Inventory">Inventory & Supply</option>
+                <option>Foot Traffic</option>
+                <option>Local Pricing</option>
+                <option value="Customer Demographics">Customer Demographics</option>
+                <option value="Restaurant Orders">Food & Dining</option>
+                <option value="Services">Local Services</option>
+                <option value="Financial & Banking">Financial</option>
+                <option value="Real Estate & Housing">Real Estate</option>
+                <option value="Healthcare & Wellness">Health & Wellness</option>
+                <option value="Marketing & Advertising">Marketing & Ads</option>
+                <option value="Transportation & Logistics">Logistics & Transport</option>
+                <option value="Hospitality & Travel">Travel & Hospitality</option>
+                <option>Other</option>
+            </select>
+            <select id="country" class="input" aria-label="Country">
+                <option value="">All countries</option>
+                <option>United States</option>
+                <option>Canada</option>
+                <option>United Kingdom</option>
+                <option>Australia</option>
+                <option>Germany</option>
+            </select>
+            <select id="sort" class="input" aria-label="Sort">
+                <option value="ending">Ending soonest</option>
+                <option value="newest">Newest</option>
+                <option value="top-bid">Highest bid</option>
+                <option value="most-bids">Most bids</option>
+            </select>
+        </div>
+
+        <p class="text-secondary text-sm mb-4" id="result-count" aria-live="polite">Loading…</p>
+        <div id="grid" class="listing-grid"></div>
+        <div class="text-center mt-8 hidden" id="more-wrap"><button class="btn btn--outline btn--lg" id="more-btn">Show more</button></div>
     </div>
-    <div class="nav__actions" id="nav-actions">
-        <!-- Managed by auth.js -->
-    </div>
-</nav>
+</main>
 
-<div class="container">
-    <div class="search-bar">
-        <input type="text" id="search-input" class="input" placeholder="🔍 Search datasets by keyword, category, city, or country...">
-        <button class="btn btn--primary search-btn" onclick="loadDatasets()">Search</button>
-    </div>
-
-    <div class="layout">
-        <aside class="sidebar">
-            <div class="filter-group">
-                <div class="filter-group__title">Country / Region</div>
-                <label class="checkbox-label"><input type="radio" name="country-filter" class="country-radio" value="" checked> All Countries</label>
-                <label class="checkbox-label"><input type="radio" name="country-filter" class="country-radio" value="United States"> 🇺🇸 United States</label>
-                <label class="checkbox-label"><input type="radio" name="country-filter" class="country-radio" value="United Kingdom"> 🇬🇧 United Kingdom</label>
-                <label class="checkbox-label"><input type="radio" name="country-filter" class="country-radio" value="Canada"> 🇨🇦 Canada</label>
-                <label class="checkbox-label"><input type="radio" name="country-filter" class="country-radio" value="Germany"> 🇩🇪 Germany</label>
-                <label class="checkbox-label"><input type="radio" name="country-filter" class="country-radio" value="Japan"> 🇯🇵 Japan</label>
-                <label class="checkbox-label"><input type="radio" name="country-filter" class="country-radio" value="Australia"> 🇦🇺 Australia</label>
-                <label class="checkbox-label"><input type="radio" name="country-filter" class="country-radio" value="international"> 🌐 Other International</label>
-            </div>
-
-            <div class="filter-group">
-                <div class="filter-group__title">Category</div>
-                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Retail Sales"> Retail Sales</label>
-                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="E-Commerce"> E-Commerce</label>
-                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Inventory"> Inventory & Supply</label>
-                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Foot Traffic"> Foot Traffic</label>
-                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Local Pricing"> Local Pricing</label>
-                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Customer Demographics"> Demographics</label>
-                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Restaurant Orders"> Food & Dining</label>
-                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Services"> Local Services</label>
-                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Financial & Banking"> Financial & FinTech</label>
-                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Real Estate & Housing"> Real Estate</label>
-                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Healthcare & Wellness"> Health & Wellness</label>
-                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Marketing & Advertising"> Marketing & Ads</label>
-                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Transportation & Logistics"> Logistics & Transport</label>
-                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Hospitality & Travel"> Travel & Hospitality</label>
-                <label class="checkbox-label"><input type="checkbox" class="category-filter" value="Other"> Other</label>
-            </div>
-
-            <div class="filter-group">
-                <div class="filter-group__title">Price Range</div>
-                <input type="range" min="0" max="2000" style="width: 100%; margin-bottom: 0.5rem;">
-                <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
-                    <span>$0</span>
-                    <span>$2,000+</span>
-                </div>
-            </div>
-
-            <div class="filter-group">
-                <div class="filter-group__title">Time Remaining</div>
-                <label class="checkbox-label"><input type="radio" name="time" checked> Any</label>
-                <label class="checkbox-label"><input type="radio" name="time"> Ending Today</label>
-                <label class="checkbox-label"><input type="radio" name="time"> Ending This Week</label>
-                <label class="checkbox-label"><input type="radio" name="time"> New Listings</label>
-            </div>
-
-            <button class="btn btn--ghost" style="width: 100%;" onclick="resetFilters()">Reset Filters</button>
-        </aside>
-
-        <main class="main-content">
-            <div class="sort-bar">
-                <span id="result-count" style="font-weight: 500; color: #555;">Loading datasets...</span>
-                <select id="sort-select" class="input" style="width: 200px; padding: 0.5rem;">
-                    <option value="Ending Soon">Ending Soon</option>
-                    <option value="Top Bid">Top Bid</option>
-                    <option value="Newest">Newest</option>
-                    <option value="Most Bids">Most Bids</option>
-                </select>
-            </div>
-
-            <div id="dataset-grid" class="grid-3 animate-fade-up">
-                <!-- Datasets render here -->
-            </div>
-
-            <div id="pagination" class="pagination" style="display: none;">
-                <button class="btn btn--ghost">← Prev</button>
-                <div class="page-num page-num--active">1</div>
-                <div class="page-num">2</div>
-                <div class="page-num">3</div>
-                <div>...</div>
-                <button class="btn btn--ghost">Next →</button>
-            </div>
-        </main>
-    </div>
-</div>
-
-    <!-- Footer -->
-    <footer class="footer section section--sm text-secondary">
+<footer class="footer section section--sm text-secondary">
         <div class="container">
             <div class="footer__grid grid grid-4 gap-8 mb-8">
                 <div>
-                    <a href="index.html" class="footer__logo font-bold text-lg text-primary mb-4 flex items-center gap-2">
-                        <span>🔐</span> DataVault
-                    </a>
-                    <p class="footer__tagline text-sm">Empowering small businesses to monetize their most valuable asset — their data.</p>
+                    <a href="index.html" class="footer__logo font-bold text-lg text-primary mb-4 flex items-center gap-2"><span>🔐</span> DataVault</a>
+                    <p class="footer__tagline text-sm">Helping small businesses earn money from the data they already have.</p>
                 </div>
                 <div>
                     <h4 class="footer__col-title font-bold mb-4">Platform</h4>
                     <ul class="flex flex-col gap-3 text-sm">
                         <li><a href="marketplace.html" class="footer__link">Marketplace</a></li>
-                        <li><a href="onboard.html" class="footer__link">For Sellers</a></li>
+                        <li><a href="upload.html" class="footer__link">Sell your data</a></li>
                         <li><a href="pricing.html" class="footer__link">Pricing & Fees</a></li>
                         <li><a href="index.html#how-it-works" class="footer__link">How It Works</a></li>
                     </ul>
@@ -213,189 +115,98 @@
             </div>
             <div class="divider mb-6"></div>
             <div class="footer__bottom flex justify-between items-center text-xs">
-                <p>© 2026 DataVault Inc. All rights reserved. Encrypted & Verified Data Exchange.</p>
+                <p>© 2026 DataVault. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
-<script>
-    let currentParams = {
-        search: '',
-        category: '',
-        country: '',
-        sort: 'Ending Soon',
-        page: 1
-    };
-    
-    let debounceTimer;
-    
-    async function loadDatasets() {
-        const grid = document.getElementById('dataset-grid');
-        const countDisplay = document.getElementById('result-count');
-        const pagination = document.getElementById('pagination');
-        
-        // Skeleton loading state
-        grid.innerHTML = Array(6).fill().map(() => `
-            <div class="dataset-card skeleton-card">
-                <div class="dataset-card__stripe" style="background:#eaeaea;"></div>
-                <div class="dataset-card__body" style="gap:1rem;">
-                    <div style="height:20px; background:#eaeaea; border-radius:4px; width:40%;"></div>
-                    <div style="height:28px; background:#eaeaea; border-radius:4px; width:80%;"></div>
-                    <div style="height:20px; background:#eaeaea; border-radius:4px; width:60%;"></div>
-                    <div style="flex:1;"></div>
-                    <div style="height:40px; background:#eaeaea; border-radius:4px; margin-top:1rem;"></div>
-                </div>
-            </div>
-        `).join('');
-        
-        try {
-            const result = await (window.DVSupabase ? DVSupabase.datasets.list(currentParams) : Promise.resolve({data: [], error: null, count: 0}));
-            let data = result.data || [];
-            
-            // Client-side fallback filter for country if dataset list doesn't filter on server
-            if (currentParams.country) {
-                const cTarget = currentParams.country.toLowerCase();
-                if (cTarget === 'international') {
-                    data = data.filter(ds => {
-                        const loc = (ds.location || '').toLowerCase();
-                        const country = (ds.country || '').toLowerCase();
-                        return country && country !== 'us' && country !== 'united states' && !loc.includes('united states') && !loc.includes(', tx') && !loc.includes(', ca') && !loc.includes(', ny') && !loc.includes(', il');
-                    });
-                } else {
-                    data = data.filter(ds => {
-                        const loc = (ds.location || '').toLowerCase();
-                        const country = (ds.country || '').toLowerCase();
-                        return loc.includes(cTarget) || country.includes(cTarget) ||
-                            (cTarget === 'united kingdom' && (loc.includes('uk') || loc.includes('london'))) ||
-                            (cTarget === 'united states' && (loc.includes('us') || loc.includes('usa') || loc.includes(', tx') || loc.includes(', ca') || loc.includes(', ny') || loc.includes(', il') || loc.includes(', az') || loc.includes(', fl') || loc.includes(', tn') || loc.includes(', or')));
-                    });
-                }
-            }
-
-            const count = result.count || data.length;
-            
-            if (result.error) throw result.error;
-            
-            if (data.length === 0) {
-                const hasFilters = Boolean(currentParams.search || currentParams.country || (currentParams.category && currentParams.category !== 'all'));
-                if (!hasFilters && window.DVSupabase?.DEMO_DATA?.datasets?.length > 0) {
-                    data = window.DVSupabase.DEMO_DATA.datasets;
-                } else {
-                    grid.innerHTML = `
-                        <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; background: #fff; border-radius: 12px; border: 1px solid #eaeaea;">
-                            <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
-                            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">No datasets found</h3>
-                            <p style="color: #666; margin-bottom: 1.5rem;">No datasets found matching your search. Try different keywords or countries.</p>
-                            <button class="btn btn--primary" onclick="resetFilters()">Clear Filters</button>
-                        </div>
-                    `;
-                    countDisplay.textContent = 'Showing 0 datasets';
-                    pagination.style.display = 'none';
-                    return;
-                }
-            }
-            
-            grid.innerHTML = data.map(ds => {
-                const isVerified = ds.seller?.verified || ds.profiles?.verified;
-                const bidAmount = ds.current_top_bid || ds.starting_bid || 0;
-                return `
-                    <a href="dataset.html?id=${ds.id}" class="dataset-card" style="text-decoration:none;color:inherit;">
-                        <div class="dataset-card__stripe"></div>
-                        <div class="dataset-card__body">
-                            <div class="dataset-card__tags">
-                                <span class="badge badge--primary">${ds.category || 'Other'}</span>
-                                ${isVerified ? '<span class="badge badge--success">Verified</span>' : ''}
-                            </div>
-                            <h3 class="dataset-card__title">${ds.title || 'Untitled Dataset'}</h3>
-                            <div class="dataset-card__meta text-sm text-secondary">${ds.location || 'Unknown Location'} • ${ds.row_count?.toLocaleString() || '?'} rows</div>
-                            <div class="bid-info">
-                                <div class="bid-label">Current Top Bid</div>
-                                <div class="bid-amount">$${bidAmount.toFixed(2)}</div>
-                                <div class="bid-count">${ds.bid_count || 0} bids</div>
-                            </div>
-                            <div class="dataset-card__footer">
-                                <div class="timer text-sm">${formatTimeLeft(ds.auction_end)}</div>
-                                <button class="btn btn--accent btn--sm">Place Bid →</button>
-                            </div>
-                        </div>
-                    </a>
-                `;
-            }).join('');
-            
-            countDisplay.textContent = `Showing ${data.length} of ${count > 24 ? count + '+' : count} datasets`;
-            pagination.style.display = count > 24 ? 'flex' : 'none';
-            
-        } catch (err) {
-            console.error('Failed to load datasets:', err);
-            grid.innerHTML = '<div style="grid-column: 1/-1; padding: 2rem; color: #dc2626; text-align: center; border: 1px solid #ffcaca; border-radius: 8px; background: #fff5f5;">Error loading datasets. Please try again.</div>';
-        }
-    }
-    
-    function formatTimeLeft(isoDate) {
-        if (!isoDate) return 'No time set';
-        const now = new Date();
-        const end = new Date(isoDate);
-        const diff = end - now;
-        
-        if (diff <= 0) return 'Auction ended';
-        
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((diff / 1000 / 60) % 60);
-        
-        if (days > 0) return `${days}d ${hours}h left`;
-        if (hours > 0) return `${hours}h ${minutes}m left`;
-        if (minutes > 0) return 'Ending soon!';
-        return 'Ending soon!';
-    }
-    
-    function resetFilters() {
-        document.getElementById('search-input').value = '';
-        document.querySelectorAll('.category-filter').forEach(cb => cb.checked = false);
-        const defaultCountry = document.querySelector('.country-radio[value=""]');
-        if (defaultCountry) defaultCountry.checked = true;
-        document.getElementById('sort-select').value = 'Ending Soon';
-        currentParams = { search: '', category: '', country: '', sort: 'Ending Soon', page: 1 };
-        loadDatasets();
-    }
-    
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('search-input').addEventListener('input', (e) => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                currentParams.search = e.target.value;
-                currentParams.page = 1;
-                loadDatasets();
-            }, 400);
-        });
-        
-        document.querySelectorAll('.country-radio').forEach(rb => {
-            rb.addEventListener('change', (e) => {
-                currentParams.country = e.target.value;
-                currentParams.page = 1;
-                loadDatasets();
-            });
-        });
-
-        document.querySelectorAll('.category-filter').forEach(cb => {
-            cb.addEventListener('change', () => {
-                const selected = Array.from(document.querySelectorAll('.category-filter:checked')).map(cb => cb.value);
-                currentParams.category = selected.join(',');
-                currentParams.page = 1;
-                loadDatasets();
-            });
-        });
-        
-        document.getElementById('sort-select').addEventListener('change', (e) => {
-            currentParams.sort = e.target.value;
-            currentParams.page = 1;
-            loadDatasets();
-        });
-        
-        loadDatasets();
-    });
-</script>
-
 <script src="js/app.js"></script>
+<script>
+'use strict';
+const { esc, money, timeLeft } = DV;
+const PAGE = 24;
+let offset = 0, total = 0, debounce;
+
+function filters() {
+    return {
+        search:   document.getElementById('search').value.trim(),
+        category: document.getElementById('category').value,
+        country:  document.getElementById('country').value,
+        sort:     document.getElementById('sort').value,
+    };
+}
+
+async function load(append = false) {
+    const grid = document.getElementById('grid');
+    if (!append) {
+        offset = 0;
+        grid.innerHTML = Array(6).fill('<div class="skeleton" style="height:230px;border-radius:16px"></div>').join('');
+    }
+    try {
+        const { data, count } = await DVSupabase.datasets.list({ ...filters(), limit: PAGE, offset });
+        total = count;
+        const html = data.map(card).join('');
+        grid.innerHTML = append ? grid.innerHTML + html : html;
+        offset += data.length;
+
+        if (!total) {
+            const f = filters();
+            const filtered = f.search || f.category || f.country;
+            grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+                <div class="empty__icon">${filtered ? '🔍' : '🌱'}</div>
+                <div class="empty__title">${filtered ? 'Nothing matches that search' : 'No live auctions right this minute'}</div>
+                <p class="mb-4">${filtered ? 'Try a different word or clear the filters.' : 'New listings are added all the time. Have data of your own? You could be the first one buyers see.'}</p>
+                ${filtered ? '<button class="btn btn--outline" onclick="resetFilters()">Clear filters</button>' : '<a href="upload.html" class="btn btn--accent">Sell your data</a>'}
+            </div>`;
+        }
+        document.getElementById('result-count').textContent = total ? `${total} live auction${total === 1 ? '' : 's'}` : '';
+        document.getElementById('more-wrap').classList.toggle('hidden', offset >= total);
+    } catch (err) {
+        grid.innerHTML = `<div class="alert alert--error" style="grid-column:1/-1"><span class="alert__icon">⚠️</span><div>${esc(err.message)} <a href="#" onclick="load();return false" class="underline">Try again</a></div></div>`;
+        document.getElementById('result-count').textContent = '';
+    }
+}
+
+function card(ds) {
+    const hasBids = ds.bid_count > 0;
+    return `
+    <a href="dataset.html?id=${encodeURIComponent(ds.id)}" class="listing">
+        <div class="listing__stripe"></div>
+        <div class="listing__body">
+            <div class="flex flex-wrap gap-2">
+                <span class="badge badge--primary">${esc(ds.category || 'Other')}</span>
+                ${ds.seller?.verified ? '<span class="badge badge--success">✓ Verified</span>' : ''}
+            </div>
+            <div class="listing__title">${esc(ds.title)}</div>
+            <div class="listing__meta">${esc(ds.location || 'Location not stated')}${ds.row_count ? ' · ' + ds.row_count.toLocaleString() + ' rows' : ''}</div>
+            <div class="listing__foot">
+                <div>
+                    <div class="text-xs text-secondary">${hasBids ? `Top bid · ${ds.bid_count} bid${ds.bid_count === 1 ? '' : 's'}` : 'Starting price'}</div>
+                    <div class="listing__price">${money(hasBids ? ds.current_top_bid : ds.starting_bid)}</div>
+                </div>
+                <div class="listing__time">⏱️ ${timeLeft(ds.auction_end)}</div>
+            </div>
+        </div>
+    </a>`;
+}
+
+function resetFilters() {
+    ['search', 'category', 'country'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('sort').value = 'ending';
+    load();
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const q = new URLSearchParams(location.search);
+    if (q.get('category')) document.getElementById('category').value = q.get('category');
+    if (q.get('search')) document.getElementById('search').value = q.get('search');
+
+    document.getElementById('search').addEventListener('input', () => { clearTimeout(debounce); debounce = setTimeout(load, 350); });
+    ['category', 'country', 'sort'].forEach(id => document.getElementById(id).addEventListener('change', () => load()));
+    document.getElementById('more-btn').addEventListener('click', () => load(true));
+    await DVAuthManager.ready();
+    load();
+});
+</script>
 </body>
 </html>

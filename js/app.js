@@ -96,7 +96,8 @@ const Toast = {
     const icons = { success: '✅', error: '❌', warning: '⚠️', default: '💬' };
     const toast = document.createElement('div');
     toast.className = `toast toast--${type}`;
-    toast.innerHTML = `<span>${icons[type] || icons.default}</span><span>${message}</span>`;
+    toast.innerHTML = `<span>${icons[type] || icons.default}</span><span></span>`;
+    toast.lastChild.textContent = message;
     this.container.appendChild(toast);
     setTimeout(() => {
       toast.style.opacity = '0';
@@ -478,12 +479,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initSidebarNav();
   initCountdowns();
   initScrollAnimations();
-  initMobileNav();
   initTabs();
   initChipSelects();
   initToggles();
   initPriceInputs();
-  updateNavAuth();
 
   // Close modals on overlay click
   document.querySelectorAll('.modal-overlay').forEach(overlay => {
@@ -492,27 +491,39 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Mobile nav styles (injected)
-  const style = document.createElement('style');
-  style.textContent = `
-    @media (max-width: 768px) {
-      .nav__links--mobile-open {
-        display: flex !important;
-        flex-direction: column;
-        position: absolute;
-        top: var(--nav-h);
-        left: 0; right: 0;
-        background: var(--c-surface);
-        padding: var(--sp-4) var(--sp-6);
-        border-bottom: 1px solid var(--c-border);
-        box-shadow: var(--sh-lg);
-        gap: var(--sp-2);
-        z-index: 99;
-      }
-    }
-  `;
-  document.head.appendChild(style);
 });
 
 // Expose globally
-window.DV = { State, Toast, Modal, Validate, Wizard, launchConfetti, animateCounter };
+/* ============================================================
+   SMALL SHARED HELPERS
+   ============================================================ */
+const Helpers = (() => {
+  // Escape text before putting it inside HTML
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function money(n, decimals = 0) {
+    const v = Number(n) || 0;
+    return '$' + v.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals === 0 && v % 1 ? 2 : decimals });
+  }
+
+  // "2 days 4 hours", "3 hours 10 min", "Ending now"
+  function timeLeft(iso) {
+    const ms = new Date(iso).getTime() - Date.now();
+    if (!(ms > 0)) return 'Ended';
+    const d = Math.floor(ms / 86400000), h = Math.floor(ms % 86400000 / 3600000), m = Math.floor(ms % 3600000 / 60000);
+    if (d > 0) return `${d} day${d > 1 ? 's' : ''} ${h} hr${h === 1 ? '' : 's'} left`;
+    if (h > 0) return `${h} hr${h > 1 ? 's' : ''} ${m} min left`;
+    if (m > 0) return `${m} min left`;
+    return 'Ending now';
+  }
+
+  function shortDate(iso) {
+    return iso ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+  }
+
+  return { esc, money, timeLeft, shortDate };
+})();
+
+window.DV = { State, Toast, Modal, Validate, Wizard, launchConfetti, animateCounter, ...Helpers };
